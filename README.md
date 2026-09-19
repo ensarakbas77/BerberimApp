@@ -90,7 +90,7 @@ Ortam değişkeni `.env` dosyasındaki değeri geçersiz kıldığı için `.env
 | `accounts/` | Özel kullanıcı modeli (e-posta ile giriş, kullanıcı adı, rol), müşteri ve dükkan sahibi kaydı, giriş, çıkış, profil, rol decorator'ları |
 | `shops/` | Dükkan, çalışma saatleri, hizmet ve kapalı gün modelleri; slug, `is_open_at`, yayın ön koşulları ve vitrin (`services.py`); herkese açık dükkan listesi ve detay sayfaları |
 | `panel/` | Dükkan sahibi paneli: dükkan bilgileri ve konum (Leaflet), çalışma saatleri, hizmetler, kapalı günler, yayına alma |
-| `bookings/` | Faz 5'te doldurulacak |
+| `bookings/` | Randevu modeli; müsaitlik, randevu oluşturma, müşteri iptali ve "İlk boş saat" (`services.py`); randevu sayfası, Randevularım ve müsaitlik API'si |
 | `templates/`, `static/` | Şablonlar, CSS, JS ve görseller |
 
 ## Canlıya alma (Supabase + Vercel)
@@ -201,7 +201,9 @@ Prototipte bilinen eksikler (ayrıntılar için PROJECT.md §14):
 - **Giriş denemelerine hız sınırı yok.** Site herkese açık olduğu için şifre deneme saldırılarına karşı ileride bir sınırlama (ör. başarısız denemelerde bekleme) eklenmeli. Ek paket kullanılmadığından prototipte yapılmadı.
 - **E-posta doğrulama ve şifre sıfırlama yok.** Şifresini unutan kullanıcı için şimdilik site yöneticisi Django admin'den yardımcı olur.
 - **Dükkan listesi sayfalanmaz ve arama Python tarafında yapılır** (Türkçe harf duyarsız). Yayındaki dükkan sayısı yüzlerce olursa süzme ve sayfalama veritabanı tarafına taşınmalı (PROJECT.md §15).
-- **Giriş yapmış müşteri dükkan detayında "Randevu alma çok yakında" görür.** Randevu sayfası Faz 5'te gelince buton gerçek bağlantıya döner.
+- **Randevu sayfasında saatler JavaScript ile yüklenir.** JS kapalıysa saat seçilemez; sayfada uyarı notu görünür (PROJECT.md §15).
+- **Randevusu olan bir dükkan (ve sahibinin hesabı) silinemez.** `Appointment.service` `PROTECT`; dükkanı silmek yerine yayından kaldırmak yeterli, gerçekten silinecekse önce randevular Django admin'den silinir.
+- **Sahip randevu iptali Faz 6'da gelecek.** O zamana kadar planlı randevusu olan güne kapalı gün eklenemez.
 - **Hizmetlerin sırası panelden değiştirilemez.** Yeni hizmet listenin sonuna eklenir (PROJECT.md §15).
 - **Konum seçimi fare ya da dokunmatik içindir.** Klavyeyle haritayı kaydırıp Enter ile ortadaki noktayı seçmek mümkün, ama koordinat girişi yok. Konum isteğe bağlıdır.
 - **Dükkan sahibi menüsünde Profil bağlantısı yok** (PROJECT.md §8'deki menü listesine uygun). Sahip `/hesap/profil/` adresine doğrudan girerek kullanıcı adını ve telefonunu düzenleyebilir.

@@ -6,7 +6,7 @@ import unicodedata
 from dataclasses import dataclass
 
 from django.db import IntegrityError, transaction
-from django.db.models import Max, Prefetch
+from django.db.models import Max, Prefetch, ProtectedError
 from django.utils import timezone
 from django.utils.text import Truncator, slugify
 
@@ -54,6 +54,14 @@ def normalize_shop_phone(raw):
     elif len(digits) == 10 and not digits.startswith("0"):
         digits = "0" + digits
     return digits if SHOP_PHONE_RE.fullmatch(digits) else None
+
+
+def format_phone(value):
+    """`02625551234` → `0262 555 12 34`. 0 ile başlayan 11 hane değilse olduğu gibi döner."""
+    digits = re.sub(r"[^0-9]", "", value or "")
+    if len(digits) == 11 and digits.startswith("0"):
+        return f"{digits[:4]} {digits[4:7]} {digits[7:9]} {digits[9:]}"
+    return value
 
 
 # --- Çalışma saatleri (§6.3) ----------------------------------------------------------------------
@@ -176,9 +184,22 @@ def next_service_sort_order(shop):
     return 0 if highest is None else highest + 1
 
 
+class ServiceInUseError(Exception):
+    """Randevusu olan hizmet silinemez; kullanıcıya gösterilecek Türkçe mesajla taşınır."""
+
+
+SERVICE_IN_USE_MESSAGE = "Bu hizmetin randevuları var, silinemez. Pasifleştirebilirsin."
+
+
 def delete_service(service):
-    """Hizmeti siler. Faz 5'te randevusu olan hizmetin silinmesini engelleyen kontrol buraya eklenir (§15)."""
-    service.delete()
+    """Hizmeti siler; randevusu olan hizmet silinmez, pasifleştirilir (§6.4, §15)."""
+    if service.appointments.exists():
+        raise ServiceInUseError(SERVICE_IN_USE_MESSAGE)
+    try:
+        service.delete()
+    except ProtectedError:
+        # Kontrol ile silme arasında randevu alındı: veritabanındaki PROTECT son savunma hattı.
+        raise ServiceInUseError(SERVICE_IN_USE_MESSAGE)
 
 
 # --- Kurulum durumu ve yayın (§13 Faz 3) ----------------------------------------------------------
@@ -293,6 +314,7 @@ class TodayStatus:
 class ShopListing:
     shop: Shop
     today: TodayStatus
+    first_slot: datetime.time | None = None  # "İlk boş saat" (bugün); yoksa gösterilmez
 
     @property
     def is_open(self):
@@ -320,11 +342,25 @@ def get_today_status(shop, now=None):
     return TodayStatus(_open_at_time(hours, now.time()), label)
 
 
-def load_showcase(now=None):
-    """Yayındaki Karamürsel dükkanları: açık olanlar önce, sonra normalize ada göre. Üç sorgu atar."""
+def load_showcase(now=None, first_slots=False):
+    """Yayındaki Karamürsel dükkanları: açık olanlar önce, sonra normalize ada göre.
+
+    Varsayılan olarak üç sorgu atar. `first_slots=True` ise her dükkan için "İlk boş saat" de hesaplanır;
+    bugünün randevuları ve aktif hizmetler önceden yüklenir (toplam beş sorgu, dükkan sayısından bağımsız).
+    """
     now = timezone.localtime(now)
-    shops = public_shops().prefetch_related(*showcase_prefetches(now))
-    listings = [ShopListing(shop, get_today_status(shop, now)) for shop in shops]
+    prefetches = showcase_prefetches(now)
+    booking_services = None
+    if first_slots:
+        # `bookings` `shops`'a bağlıdır; içe aktarma döngüsü olmasın diye burada.
+        from bookings import services as booking_services
+
+        prefetches += booking_services.showcase_booking_prefetches(now)
+    shops = public_shops().prefetch_related(*prefetches)
+    listings = []
+    for shop in shops:
+        first_slot = booking_services.get_first_available_slot(shop, now) if first_slots else None
+        listings.append(ShopListing(shop, get_today_status(shop, now), first_slot))
     listings.sort(key=lambda listing: (not listing.is_open, normalize_text(listing.shop.name), listing.shop.pk))
     return listings
 
@@ -420,14 +456,14 @@ def shop_meta_description(shop):
 
 
 BOOKING_LOGIN = "login"  # ziyaretçi: giriş sayfasına `next` ile gider
-BOOKING_SOON = "soon"  # giriş yapmış müşteri: randevu sayfası Faz 5'te gelir
+BOOKING_BOOK = "book"  # giriş yapmış müşteri: randevu sayfasına gider
 BOOKING_NONE = None  # sahip: randevu almaz
 
 
 def get_booking_mode(user):
-    """"Randevu al" butonunun Faz 4'teki hâli (PROJECT.md §15)."""
+    """"Randevu al" butonunun hâli (PROJECT.md §5, §13 Faz 5)."""
     if not user.is_authenticated:
         return BOOKING_LOGIN
     if user.role == User.Role.CUSTOMER:
-        return BOOKING_SOON
+        return BOOKING_BOOK
     return BOOKING_NONE

@@ -23,6 +23,7 @@
             <li>{% include "partials/_logout_form.html" %}</li>
           {% else %}
             <li><a href="{% url 'shops:list' %}">Berberler</a></li>
+            <li><a href="{% url 'bookings:my_appointments' %}">Randevularım</a></li>
             <li>
               <details class="user-menu">
                 <summary>@{{ user.username }}</summary>

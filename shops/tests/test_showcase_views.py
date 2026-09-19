@@ -350,14 +350,14 @@ class ShopDetailTests(TestCase):
         self.assertContains(response, login_href, count=2)  # kutu ve mobil çubuk
         self.assertContains(response, "book-bar")
 
-    def test_customer_sees_a_disabled_button_until_booking_arrives(self):
+    def test_customer_goes_straight_to_the_booking_page(self):
         make_user()
         login(self.client, "musteri")
         response = self.client.get(self.url)
-        self.assertContains(response, "Randevu alma çok yakında")
-        self.assertContains(response, 'disabled aria-disabled="true"', count=2)  # kutudaki ve çubuktaki düğme
+        self.assertContains(response, 'href="/berber/usta-kemal-berber/randevu/"', count=2)  # kutu ve mobil çubuk
+        self.assertContains(response, "book-bar")
         self.assertNotContains(response, "/hesap/giris/?next=")
-        self.assertNotContains(response, "/randevu/")
+        self.assertNotContains(response, "disabled")
 
     def test_owners_get_no_booking_button(self):
         make_owner(username="baska")
@@ -368,11 +368,6 @@ class ShopDetailTests(TestCase):
                 response = client.get(self.url)
                 self.assertNotContains(response, "Randevu al")
                 self.assertNotContains(response, "book-bar")
-
-    def test_booking_link_never_points_to_a_page_that_does_not_exist_yet_for_customers(self):
-        make_user()
-        login(self.client, "musteri")
-        self.assertNotContains(self.client.get(self.url), 'href="/berber/usta-kemal-berber/randevu/"')
 
     # --- meta ---
     def test_title_and_description_are_per_page(self):

@@ -5,6 +5,8 @@ import re
 from django import template
 from django.template.defaultfilters import floatformat
 
+from shops.services import format_phone
+
 register = template.Library()
 
 NON_DIGITS_RE = re.compile(r"[^0-9]")
@@ -25,11 +27,8 @@ def price(value):
 
 @register.filter
 def phone(value):
-    """`02625551234` → `0262 555 12 34`. 0 ile başlayan 11 hane değilse olduğu gibi döner."""
-    digits = _digits(value)
-    if len(digits) == 11 and digits.startswith("0"):
-        return f"{digits[:4]} {digits[4:7]} {digits[7:9]} {digits[9:]}"
-    return value
+    """`02625551234` → `0262 555 12 34` (bkz. `shops.services.format_phone`)."""
+    return format_phone(value)
 
 
 @register.filter

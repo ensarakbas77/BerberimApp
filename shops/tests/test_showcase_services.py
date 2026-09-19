@@ -256,5 +256,5 @@ class MetaDescriptionTests(TestCase):
 class BookingModeTests(TestCase):
     def test_visitor_customer_and_owner(self):
         self.assertEqual(services.get_booking_mode(AnonymousUser()), services.BOOKING_LOGIN)
-        self.assertEqual(services.get_booking_mode(make_user()), services.BOOKING_SOON)
+        self.assertEqual(services.get_booking_mode(make_user()), services.BOOKING_BOOK)
         self.assertIsNone(services.get_booking_mode(make_owner()))

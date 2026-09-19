@@ -59,4 +59,12 @@
       alert.remove();
     }
   });
+
+  // Tehlikeli işlemler (iptal, silme): form `data-confirm` taşıyorsa onay penceresi açılır. JS yoksa onaysız gönderilir.
+  document.addEventListener("submit", function (event) {
+    var message = event.target.getAttribute && event.target.getAttribute("data-confirm");
+    if (message && !window.confirm(message)) {
+      event.preventDefault();
+    }
+  });
 })();

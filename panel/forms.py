@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.forms import BaseModelFormSet, modelformset_factory
 from django.utils import timezone
 
+from bookings.models import Appointment
 from core.forms import StyledFormMixin
 from shops import services
 from shops.models import Service, Shop, ShopClosure, WorkingHours
@@ -189,4 +190,9 @@ class ShopClosureForm(StyledFormMixin, forms.ModelForm):
             raise ValidationError("Geçmiş bir tarih ekleyemezsin.", code="past_date")
         if self.shop.closures.filter(date=date).exists():
             raise ValidationError("Bu gün zaten kapalı günler listende.", code="duplicate_date")
+        # Otomatik iptal yok: planlı randevusu olan güne kapalı gün eklenmez (PROJECT.md §15).
+        if self.shop.appointments.filter(date=date, status=Appointment.Status.SCHEDULED).exists():
+            raise ValidationError(
+                "Bu gün için planlı randevu var. Önce randevuları iptal et.", code="has_appointments"
+            )
         return date

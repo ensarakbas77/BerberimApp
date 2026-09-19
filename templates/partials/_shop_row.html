@@ -5,6 +5,7 @@ Geniş liste satırı (PROJECT.md §9.4): ad, mahalle, bugünün saatleri, açı
     <h3 class="shop-row__name"><a href="{{ listing.shop.get_absolute_url }}">{{ listing.shop.name }}</a></h3>
     {% if listing.shop.neighborhood %}<p class="shop-row__meta">{{ listing.shop.neighborhood }}</p>{% endif %}
     <p class="shop-row__hours tabular">{{ listing.today.label }}</p>
+    {% if listing.first_slot %}<p class="shop-row__slot tabular">İlk boş saat: {{ listing.first_slot|time:"H:i" }}</p>{% endif %}
   </div>
   {% if listing.is_open %}
   <span class="badge badge--open">Açık</span>

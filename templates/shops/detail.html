@@ -91,11 +91,9 @@
         {% endif %}
         <span class="tabular">{{ status.label }}</span>
       </p>
-      {% if booking_mode == "login" %}
-      <a class="btn btn--primary btn--block booking-box__cta" href="{{ login_url }}">Randevu al</a>
-      {% elif booking_mode == "soon" %}
-      <button type="button" class="btn btn--primary btn--block booking-box__cta" disabled aria-disabled="true">Randevu al</button>
-      <p class="field__hint booking-box__cta">Randevu alma çok yakında.</p>
+      {% if first_slot %}<p class="booking-box__slot tabular">İlk boş saat: {{ first_slot|time:"H:i" }}</p>{% endif %}
+      {% if booking_href %}
+      <a class="btn btn--primary btn--block booking-box__cta" href="{{ booking_href }}">Randevu al</a>
       {% endif %}
       <p class="booking-box__phone">
         <span class="field__label">Telefon</span>
@@ -105,13 +103,9 @@
   </aside>
 </div>
 
-{% if booking_mode %}
+{% if booking_href %}
 <div class="book-bar">
-  {% if booking_mode == "login" %}
-  <a class="btn btn--primary btn--block" href="{{ login_url }}">Randevu al</a>
-  {% else %}
-  <button type="button" class="btn btn--primary btn--block" disabled aria-disabled="true">Randevu alma çok yakında</button>
-  {% endif %}
+  <a class="btn btn--primary btn--block" href="{{ booking_href }}">Randevu al</a>
 </div>
 {% endif %}
 {% endblock %}

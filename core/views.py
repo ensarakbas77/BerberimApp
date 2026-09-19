@@ -8,7 +8,7 @@ from shops import services as shop_services
 
 
 def home(request):
-    listings = shop_services.load_showcase()
+    listings = shop_services.load_showcase(first_slots=True)
     open_listings = [listing for listing in listings if listing.is_open][: shop_services.HOME_OPEN_LIMIT]
     return render(request, "core/home.html", {"open_listings": open_listings, "has_shops": bool(listings)})
 

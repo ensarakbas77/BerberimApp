@@ -130,8 +130,12 @@ def service_toggle(request, pk):
 @require_POST
 def service_delete(request, pk):
     service = get_object_or_404(request.shop.services.all(), pk=pk)
-    services.delete_service(service)
-    messages.success(request, "Hizmet silindi.")
+    try:
+        services.delete_service(service)
+    except services.ServiceInUseError as error:
+        messages.error(request, str(error))
+    else:
+        messages.success(request, "Hizmet silindi.")
     return redirect("panel:services")
 
 

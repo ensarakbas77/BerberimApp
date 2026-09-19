@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Randevularım | Berberim{% endblock %}
+
+{% block content %}
+<h1>Randevularım</h1>
+
+<section class="detail-section" aria-labelledby="upcoming-title">
+  <h2 id="upcoming-title">Yaklaşan</h2>
+  {% if upcoming %}
+  <ul class="appointment-list">
+    {% for appointment in upcoming %}
+    {% include "partials/_appointment_card.html" %}
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="panel">
+    <p>Yaklaşan randevun yok. Berberlerin boş saatlerine bak ve randevunu al.</p>
+    <a class="btn btn--primary" href="{% url 'shops:list' %}">Berberlere bak</a>
+  </div>
+  {% endif %}
+</section>
+
+<section class="detail-section" aria-labelledby="past-title">
+  <h2 id="past-title">Geçmiş</h2>
+  {% if past %}
+  <ul class="appointment-list">
+    {% for appointment in past %}
+    {% include "partials/_appointment_card.html" %}
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="panel">
+    <p>Geçmiş randevun yok.</p>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% comment %}Kullanım: {% include "partials/_status_badge.html" with status=appointment.display_status %}
+Durum rozeti her zaman metin içerir (PROJECT.md §9.2). `unmarked` = bitişi geçmiş ama işaretlenmemiş planlı randevu.{% endcomment %}
+{% if status == "scheduled" %}<span class="badge badge--scheduled">Planlandı</span>
+{% elif status == "completed" %}<span class="badge badge--completed">Tamamlandı</span>
+{% elif status == "no_show" %}<span class="badge badge--no-show">Gelmedi</span>
+{% elif status == "cancelled" %}<span class="badge badge--cancelled">İptal edildi</span>
+{% elif status == "unmarked" %}<span class="badge badge--unmarked">İşaretlenmeyi bekliyor</span>{% endif %}
