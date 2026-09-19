@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Berberler | Berberim{% endblock %}
+{% block meta_description %}Karamürsel'deki berberleri ada, mahalleye ve şu an açık olmasına göre bul. Çalışma saatlerini ve hizmetleri gör.{% endblock %}
+
+{% block content %}
+<h1>Berberler</h1>
+
+<form method="get" action="{% url 'shops:list' %}" class="filter-bar" role="search">
+  {% include "partials/_form_field.html" with field=form.q %}
+  {% include "partials/_form_field.html" with field=form.mahalle %}
+  {% include "partials/_form_checkbox.html" with field=form.acik %}
+  <div class="filter-bar__actions">
+    <button type="submit" class="btn btn--primary">Ara</button>
+    {% if filtered %}<a class="btn btn--secondary" href="{% url 'shops:list' %}">Süzgeçleri temizle</a>{% endif %}
+  </div>
+</form>
+
+<h2 class="visually-hidden">Sonuçlar</h2>
+{% if listings %}
+<p class="result-count" aria-live="polite">{{ listings|length }} berber</p>
+<ul class="shop-list">
+  {% for listing in listings %}
+  {% include "partials/_shop_row.html" %}
+  {% endfor %}
+</ul>
+{% elif total %}
+<div class="panel" aria-live="polite">
+  <p>Aramana uyan berber bulunamadı. Süzgeçleri gevşetip yeniden dene.</p>
+  <a class="btn btn--secondary" href="{% url 'shops:list' %}">Süzgeçleri temizle</a>
+</div>
+{% else %}
+<div class="panel">
+  <p>Henüz yayında berber yok. Berber misin? Dükkanını ekleyip yayına alabilirsin.</p>
+  <a class="btn btn--primary" href="{% url 'accounts:register_owner' %}">Dükkan hesabı aç</a>
+</div>
+{% endif %}
+{% endblock %}

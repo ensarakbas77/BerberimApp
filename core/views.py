@@ -4,9 +4,13 @@ from django.shortcuts import render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_safe
 
+from shops import services as shop_services
+
 
 def home(request):
-    return render(request, "core/home.html")
+    listings = shop_services.load_showcase()
+    open_listings = [listing for listing in listings if listing.is_open][: shop_services.HOME_OPEN_LIMIT]
+    return render(request, "core/home.html", {"open_listings": open_listings, "has_shops": bool(listings)})
 
 
 @require_safe

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load static l10n berberim %}
+
+{% block title %}{{ shop.name }} | Berberim{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+
+{% block extra_head %}
+{% if preview %}<meta name="robots" content="noindex">{% endif %}
+{% if has_location %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if preview %}
+<div class="alert alert--warning form-alert" role="status">
+  <p class="alert__text">Yayında değil. Bu sayfayı yalnızca sen görüyorsun.</p>
+</div>
+{% endif %}
+
+<div class="shop-detail">
+  <div class="shop-detail__main">
+    <header class="shop-head">
+      <h1>{{ shop.name }}</h1>
+      <p class="shop-head__meta">
+        {% if shop.neighborhood %}<span>{{ shop.neighborhood }}</span>{% endif %}
+        {% if status.is_open %}
+        <span class="badge badge--open">Açık</span>
+        {% else %}
+        <span class="badge badge--closed">Kapalı</span>
+        {% endif %}
+      </p>
+    </header>
+
+    {% if shop.description %}<p class="shop-description prose">{{ shop.description|linebreaksbr }}</p>{% endif %}
+
+    <section class="detail-section" aria-labelledby="services-title">
+      <h2 id="services-title">Hizmetler</h2>
+      {% if services %}
+      <ul class="service-list">
+        {% for service in services %}
+        <li class="service-list__item">
+          <span class="service-list__name">{{ service.name }}</span>
+          <span class="tabular">{{ service.duration_minutes }} dk</span>
+          {% if shop.show_prices %}<span class="tabular service-list__price">{{ service.price|price }}</span>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p>Bu berber henüz hizmet eklemedi.</p>
+      {% endif %}
+    </section>
+
+    <section class="detail-section" aria-labelledby="hours-title">
+      <h2 id="hours-title">Çalışma saatleri</h2>
+      {% include "shops/_weekly_hours.html" %}
+      {% if closures %}
+      <h3 class="detail-subtitle">Yaklaşan kapalı günler</h3>
+      <ul class="closure-list">
+        {% for closure in closures %}
+        <li>
+          <time datetime="{{ closure.date|date:'Y-m-d' }}">{{ closure.date|date:"j F l" }}</time>
+          {% if closure.note %}<span class="closure-list__note">{{ closure.note }}</span>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </section>
+
+    <section class="detail-section" aria-labelledby="location-title">
+      <h2 id="location-title">Konum</h2>
+      <p>{{ shop.address }}</p>
+      {% if has_location %}
+      <div id="shop-map" class="map" role="region" aria-label="{{ shop.name }} haritadaki konumu"
+           data-lat="{{ shop.latitude|unlocalize }}" data-lng="{{ shop.longitude|unlocalize }}" data-name="{{ shop.name }}" hidden></div>
+      <p>
+        <a class="btn btn--secondary" href="https://www.google.com/maps/dir/?api=1&amp;destination={{ shop.latitude|unlocalize }},{{ shop.longitude|unlocalize }}">Yol tarifi al</a>
+      </p>
+      {% endif %}
+    </section>
+  </div>
+
+  <aside class="shop-detail__aside" aria-label="Randevu ve iletişim">
+    <div class="panel booking-box">
+      <p class="booking-box__status">
+        {% if status.is_open %}
+        <span class="badge badge--open">Açık</span>
+        {% else %}
+        <span class="badge badge--closed">Kapalı</span>
+        {% endif %}
+        <span class="tabular">{{ status.label }}</span>
+      </p>
+      {% if booking_mode == "login" %}
+      <a class="btn btn--primary btn--block booking-box__cta" href="{{ login_url }}">Randevu al</a>
+      {% elif booking_mode == "soon" %}
+      <button type="button" class="btn btn--primary btn--block booking-box__cta" disabled aria-disabled="true">Randevu al</button>
+      <p class="field__hint booking-box__cta">Randevu alma çok yakında.</p>
+      {% endif %}
+      <p class="booking-box__phone">
+        <span class="field__label">Telefon</span>
+        <a href="tel:{{ shop.phone|tel_href }}">{{ shop.phone|phone }}</a>
+      </p>
+    </div>
+  </aside>
+</div>
+
+{% if booking_mode %}
+<div class="book-bar">
+  {% if booking_mode == "login" %}
+  <a class="btn btn--primary btn--block" href="{{ login_url }}">Randevu al</a>
+  {% else %}
+  <button type="button" class="btn btn--primary btn--block" disabled aria-disabled="true">Randevu alma çok yakında</button>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if has_location %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
+<script src="{% static 'js/shop-map.js' %}" defer></script>
+{% endif %}
+{% endblock %}

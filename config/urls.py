@@ -9,5 +9,6 @@ urlpatterns = [
     path("yonetim/", admin.site.urls),
     path("hesap/", include("accounts.urls")),
     path("panel/", include("panel.urls")),
+    path("", include("shops.urls")),
     path("", include("core.urls")),
 ]

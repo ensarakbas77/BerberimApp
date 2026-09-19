@@ -4,5 +4,47 @@
 <section class="hero">
   <h1>Karamürsel'de tıraş vakti.</h1>
   <p class="lead">Berberlerin boş saatlerini gör, randevunu hemen al.</p>
+  <form method="get" action="{% url 'shops:list' %}" class="hero-search" role="search">
+    <div class="field">
+      <label class="field__label" for="home-q">Berber ara</label>
+      <input type="search" name="q" id="home-q" class="input" maxlength="80" autocomplete="off" enterkeyhint="search">
+    </div>
+    <button type="submit" class="btn btn--primary">Ara</button>
+  </form>
 </section>
+
+<section class="home-section" aria-labelledby="open-now-title">
+  <h2 id="open-now-title">Şu an açık</h2>
+  {% if open_listings %}
+  <ul class="shop-list">
+    {% for listing in open_listings %}
+    {% include "partials/_shop_row.html" %}
+    {% endfor %}
+  </ul>
+  <p class="home-section__more"><a href="{% url 'shops:list' %}">Tüm berberleri gör</a></p>
+  {% elif has_shops %}
+  <div class="panel">
+    <p>Şu an açık berber yok. Çalışma saatlerini görmek için tüm berberlere bak.</p>
+    <a class="btn btn--secondary" href="{% url 'shops:list' %}">Tüm berberleri gör</a>
+  </div>
+  {% else %}
+  <div class="panel">
+    <p>Henüz yayında berber yok. Berberler dükkanlarını ekledikçe burada görünecek.</p>
+  </div>
+  {% endif %}
+</section>
+
+{% if not user.is_authenticated %}
+<section class="panel owner-cta" aria-labelledby="owner-cta-title">
+  <h2 id="owner-cta-title">Berber misin?</h2>
+  <p>Dükkanını ekle, randevularını tek ekrandan takip et.</p>
+  <a class="btn btn--primary" href="{% url 'accounts:register_owner' %}">Dükkan hesabı aç</a>
+</section>
+{% elif user.role == "owner" %}
+<section class="panel owner-cta" aria-labelledby="owner-cta-title">
+  <h2 id="owner-cta-title">Dükkanın</h2>
+  <p>Bilgilerini, saatlerini ve hizmetlerini panelden yönet.</p>
+  <a class="btn btn--secondary" href="{% url 'panel:home' %}">Panele git</a>
+</section>
+{% endif %}
 {% endblock %}

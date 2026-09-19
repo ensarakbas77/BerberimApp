@@ -1,0 +1,23 @@
+{% comment %}Haftalık çalışma saatleri tablosu; `weekly_hours` bağlamda olmalı. Bugünün satırı vurgulanır ve "Bugün" yazar.{% endcomment %}
+<table class="hours-table">
+  <caption class="visually-hidden">Haftalık çalışma saatleri</caption>
+  <tbody>
+    {% for day in weekly_hours %}
+    <tr{% if day.is_today %} class="hours-table__today" aria-current="date"{% endif %}>
+      <th scope="row">
+        {{ day.name }}
+        {% if day.is_today %}<span class="chip chip--selected">Bugün</span>{% endif %}
+      </th>
+      <td class="tabular">
+        {% if day.is_open %}
+        <span>{{ day.open_time|time:"H:i" }}–{{ day.close_time|time:"H:i" }}</span>
+        {% if day.break_start %}<span class="hours-table__note">Mola {{ day.break_start|time:"H:i" }}–{{ day.break_end|time:"H:i" }}</span>{% endif %}
+        {% else %}
+        <span>Kapalı</span>
+        {% if day.note %}<span class="hours-table__note">{{ day.note }}</span>{% endif %}
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

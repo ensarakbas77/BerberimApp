@@ -2,17 +2,18 @@
 
 import datetime
 import re
+import unicodedata
 from dataclasses import dataclass
 
 from django.db import IntegrityError, transaction
-from django.db.models import Max
+from django.db.models import Max, Prefetch
 from django.utils import timezone
-from django.utils.text import slugify
+from django.utils.text import Truncator, slugify
 
 from accounts.models import User
 from accounts.services import PHONE_SEPARATORS_RE
 
-from .models import Service, Shop, WorkingHours
+from .models import Service, Shop, ShopClosure, WorkingHours
 
 # --- Slug (§7.10) ---------------------------------------------------------------------------------
 
@@ -113,6 +114,18 @@ def working_hours_errors(is_open, open_time, close_time, break_start, break_end)
     return errors
 
 
+def _open_at_time(hours, at):
+    """Bir günün `WorkingHours` kaydına göre `at` saatinde açık mı: açılış ≤ saat < kapanış, mola dışında."""
+    if hours is None or not hours.is_open or hours.open_time is None or hours.close_time is None:
+        return False
+    if not hours.open_time <= at < hours.close_time:
+        return False
+    if hours.break_start is not None and hours.break_end is not None:
+        if hours.break_start <= at < hours.break_end:
+            return False
+    return True
+
+
 def is_open_at(shop, moment):
     """Dükkan verilen anda açık mı (§7.8): kapalı gün değil, günün `is_open` değeri doğru,
     açılış ≤ saat < kapanış ve mola aralığında değil. Naive `moment` yerel saat sayılır."""
@@ -123,14 +136,7 @@ def is_open_at(shop, moment):
     if shop.closures.filter(date=day).exists():
         return False
     hours = shop.hours.filter(weekday=day.weekday()).first()
-    if hours is None or not hours.is_open or hours.open_time is None or hours.close_time is None:
-        return False
-    if not hours.open_time <= at < hours.close_time:
-        return False
-    if hours.break_start is not None and hours.break_end is not None:
-        if hours.break_start <= at < hours.break_end:
-            return False
-    return True
+    return _open_at_time(hours, at)
 
 
 # --- Dükkan oluşturma -----------------------------------------------------------------------------
@@ -234,3 +240,194 @@ def publish_shop(shop):
 def unpublish_shop(shop):
     shop.is_published = False
     shop.save(update_fields=["is_published", "updated_at"])
+
+
+# --- Vitrin (§13 Faz 4) ---------------------------------------------------------------------------
+
+SHOWCASE_CITY = "Kocaeli"
+SHOWCASE_DISTRICT = "Karamürsel"
+HOME_OPEN_LIMIT = 6
+UPCOMING_CLOSURES_LIMIT = 10
+META_DESCRIPTION_LENGTH = 155
+
+
+def normalize_text(value):
+    """Aramada büyük/küçük harf ve Türkçe harf farkını yok sayar: "Kırkpınar", "KIRKPINAR" ve "kirkpinar" aynıdır.
+
+    Önce Türkçe harfler çevrilir (ı ve İ dahil), sonra ayrışık (NFD) girişlerdeki aksanlar atılır.
+    """
+    text = unicodedata.normalize("NFKD", value.translate(TR_MAP))
+    text = "".join(char for char in text if not unicodedata.combining(char))
+    return " ".join(text.casefold().split())
+
+
+def public_shops():
+    """Vitrinde görünebilecek dükkanlar: yayında ve Karamürsel'de."""
+    return Shop.objects.filter(is_published=True, city=SHOWCASE_CITY, district=SHOWCASE_DISTRICT)
+
+
+def is_publicly_visible(shop):
+    return shop.is_published and shop.city == SHOWCASE_CITY and shop.district == SHOWCASE_DISTRICT
+
+
+def showcase_prefetches(now=None):
+    """Bugünün saatlerini ve kapalı gününü sorgu atmadan okumak için önceden yüklenecekler."""
+    today = timezone.localtime(now).date()
+    return [
+        "hours",
+        Prefetch("closures", queryset=ShopClosure.objects.filter(date=today), to_attr="todays_closures"),
+    ]
+
+
+def format_time(value):
+    return value.strftime("%H:%M")
+
+
+@dataclass(frozen=True)
+class TodayStatus:
+    is_open: bool
+    label: str  # "Bugün 09:00–20:00" ya da "Bugün kapalı"
+
+
+@dataclass(frozen=True)
+class ShopListing:
+    shop: Shop
+    today: TodayStatus
+
+    @property
+    def is_open(self):
+        return self.today.is_open
+
+
+def get_today_status(shop, now=None):
+    """Bugünün saat metni ve dükkanın şu an açık olup olmadığı.
+
+    `now` saat dilimli bir zaman ya da `None` (şimdi). `shop.hours` ve `shop.todays_closures`
+    (bkz. `showcase_prefetches`) önceden yüklenmişse sorgu atmaz.
+    """
+    now = timezone.localtime(now)
+    today = now.date()
+    closures = getattr(shop, "todays_closures", None)
+    if closures is None:
+        closures = list(shop.closures.filter(date=today))
+    closed = TodayStatus(False, "Bugün kapalı")
+    if any(closure.date == today for closure in closures):
+        return closed
+    hours = next((row for row in shop.hours.all() if row.weekday == today.weekday()), None)
+    if hours is None or not hours.is_open or hours.open_time is None or hours.close_time is None:
+        return closed
+    label = f"Bugün {format_time(hours.open_time)}–{format_time(hours.close_time)}"
+    return TodayStatus(_open_at_time(hours, now.time()), label)
+
+
+def load_showcase(now=None):
+    """Yayındaki Karamürsel dükkanları: açık olanlar önce, sonra normalize ada göre. Üç sorgu atar."""
+    now = timezone.localtime(now)
+    shops = public_shops().prefetch_related(*showcase_prefetches(now))
+    listings = [ShopListing(shop, get_today_status(shop, now)) for shop in shops]
+    listings.sort(key=lambda listing: (not listing.is_open, normalize_text(listing.shop.name), listing.shop.pk))
+    return listings
+
+
+def filter_showcase(listings, query="", neighborhood="", open_only=False):
+    """Ada göre arama, mahalle ve "şu an açık" süzgeçleri birlikte uygulanır; sıralama korunur."""
+    needle = normalize_text(query)
+    area = normalize_text(neighborhood)
+    result = []
+    for listing in listings:
+        if needle and needle not in normalize_text(listing.shop.name):
+            continue
+        if area and normalize_text(listing.shop.neighborhood) != area:
+            continue
+        if open_only and not listing.is_open:
+            continue
+        result.append(listing)
+    return result
+
+
+def neighborhood_choices(listings):
+    """Mevcut mahalleler; "Merkez" ve "merkez" tek seçenek olur. Büyük harfle başlayan yazım tercih edilir,
+    yoksa ilk görülen kalır."""
+    seen = {}
+    for listing in listings:
+        label = listing.shop.neighborhood.strip()
+        key = normalize_text(label)
+        if not key:
+            continue
+        current = seen.get(key)
+        if current is None or (not current[:1].isupper() and label[:1].isupper()):
+            seen[key] = label
+    return [seen[key] for key in sorted(seen)]
+
+
+@dataclass(frozen=True)
+class DayHours:
+    """Haftalık tablonun bir satırı. Bugün kapalı gün (`ShopClosure`) varsa bugünün satırı kapalı gösterilir."""
+
+    name: str
+    is_today: bool
+    is_open: bool
+    open_time: datetime.time | None = None
+    close_time: datetime.time | None = None
+    break_start: datetime.time | None = None
+    break_end: datetime.time | None = None
+    note: str = ""
+
+
+def get_weekly_hours(shop, today):
+    """Pazartesiden Pazara 7 satır; `shop.hours` ve `shop.todays_closures` önceden yüklenmişse sorgu atmaz."""
+    by_weekday = {row.weekday: row for row in shop.hours.all()}
+    closures = getattr(shop, "todays_closures", None)
+    if closures is None:
+        closures = list(shop.closures.filter(date=today))
+    closure_today = next((closure for closure in closures if closure.date == today), None)
+
+    days = []
+    for weekday in WorkingHours.Weekday.values:
+        name = WorkingHours.Weekday(weekday).label
+        is_today = weekday == today.weekday()
+        row = by_weekday.get(weekday)
+        if is_today and closure_today is not None:
+            days.append(DayHours(name, True, False, note=closure_today.note))
+        elif row is None or not row.is_open or row.open_time is None or row.close_time is None:
+            days.append(DayHours(name, is_today, False))
+        else:
+            has_break = row.break_start is not None and row.break_end is not None
+            days.append(
+                DayHours(
+                    name,
+                    is_today,
+                    True,
+                    row.open_time,
+                    row.close_time,
+                    row.break_start if has_break else None,
+                    row.break_end if has_break else None,
+                )
+            )
+    return days
+
+
+def get_upcoming_closures(shop, today, limit=UPCOMING_CLOSURES_LIMIT):
+    return list(shop.closures.filter(date__gte=today)[:limit])
+
+
+def shop_meta_description(shop):
+    """`<meta name="description">`: açıklamanın ilk 155 karakteri, yoksa dükkan adından türetilen metin."""
+    text = " ".join(shop.description.split())
+    if text:
+        return Truncator(text).chars(META_DESCRIPTION_LENGTH)
+    return f"{shop.name}, Karamürsel: hizmetler, çalışma saatleri ve konum. Randevunu hemen al."
+
+
+BOOKING_LOGIN = "login"  # ziyaretçi: giriş sayfasına `next` ile gider
+BOOKING_SOON = "soon"  # giriş yapmış müşteri: randevu sayfası Faz 5'te gelir
+BOOKING_NONE = None  # sahip: randevu almaz
+
+
+def get_booking_mode(user):
+    """"Randevu al" butonunun Faz 4'teki hâli (PROJECT.md §15)."""
+    if not user.is_authenticated:
+        return BOOKING_LOGIN
+    if user.role == User.Role.CUSTOMER:
+        return BOOKING_SOON
+    return BOOKING_NONE

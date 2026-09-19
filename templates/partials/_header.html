@@ -18,8 +18,11 @@
         {% if user.is_authenticated %}
           {% if user.role == "owner" %}
             <li><a href="{% url 'panel:home' %}">Panel</a></li>
+            {# Dükkanı olmayan sahipte `user.shop` boş sayılır (ObjectDoesNotExist şablonda sessizdir). #}
+            {% if user.shop %}<li><a href="{{ user.shop.get_absolute_url }}">Dükkanımı gör</a></li>{% endif %}
             <li>{% include "partials/_logout_form.html" %}</li>
           {% else %}
+            <li><a href="{% url 'shops:list' %}">Berberler</a></li>
             <li>
               <details class="user-menu">
                 <summary>@{{ user.username }}</summary>
@@ -31,6 +34,7 @@
             </li>
           {% endif %}
         {% else %}
+          <li><a href="{% url 'shops:list' %}">Berberler</a></li>
           <li><a href="{% url 'accounts:login' %}">Giriş yap</a></li>
           <li><a href="{% url 'accounts:register' %}">Kayıt ol</a></li>
         {% endif %}

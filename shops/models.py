@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxLengthValidator, MaxValueValidator, MinValueValidator
 from django.db import models
+from django.urls import reverse
 
 from accounts.models import User
 
@@ -72,6 +73,13 @@ class Shop(models.Model):
         from . import services
 
         return services.is_open_at(self, moment)
+
+    def get_absolute_url(self):
+        return reverse("shops:detail", kwargs={"slug": self.slug})
+
+    def get_booking_path(self):
+        """Randevu sayfasının adresi (Faz 5'te gelir; Faz 4'te yalnızca giriş sayfasının `next` değeri olur)."""
+        return f"{self.get_absolute_url()}randevu/"
 
 
 class WorkingHours(models.Model):
