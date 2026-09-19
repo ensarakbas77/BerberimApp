@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}Panel sayfalarının ortak iskeleti: dükkan varsa panel menüsü. `shop` bağlamda verilir.{% endcomment %}
+
+{% block content %}
+{% if shop %}{% include "panel/_nav.html" %}{% endif %}
+{% block panel_content %}{% endblock %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/panel.js' %}" defer></script>
+{% block panel_js %}{% endblock %}
+{% endblock %}

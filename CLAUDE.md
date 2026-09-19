@@ -29,10 +29,10 @@ Python 3.12, Django 5.2 LTS (sunucuda render edilen şablonlar), psycopg 3, Whit
 11. Testler SQLite'ta koşar; `.env`'de canlı `DATABASE_URL` olsa bile. Canlı veritabanına yalnızca `scripts/migrate-production.ps1` bağlanır ve şifreyi kullanıcı verir.
 
 ## Yapı
-`config/` ayarlar; `core/` ana sayfa, sağlık kontrolü, ortak form mixin'i; `accounts/` özel User, kayıt/giriş/profil, `customer_required`/`owner_required`; `panel/` sahip paneli (Faz 3'te dolar); `shops/`, `bookings/` sonraki fazlarda dolar. Şablonlar `templates/`, statik dosyalar `static/`.
+`config/` ayarlar; `core/` ana sayfa, sağlık kontrolü, ortak form mixin'i; `accounts/` özel User, kayıt/giriş/profil, `customer_required`/`owner_required`; `shops/` Shop, WorkingHours, Service, ShopClosure ve `services.py` (slug, `is_open_at`, yayın ön koşulları); `panel/` sahip paneli (`shop_required` decorator'ı `request.shop` verir, panel sorguları oradan başlar); `bookings/` Faz 5'te dolar. Şablonlar `templates/`, statik dosyalar `static/`.
 
 ## Durum ve canlı ortam
-Faz 0–2 tamam (iskelet, canlı yayın, hesaplar ve roller); sıradaki Faz 3 (dükkan kurulumu). Kararlar PROJECT.md §15'te.
+Faz 0–3 tamam (iskelet, canlı yayın, hesaplar, dükkan kurulumu); sıradaki Faz 4 (vitrin). Kararlar PROJECT.md §15'te. Faz 5'te `delete_service`'e ve kapalı gün eklemeye randevu kontrolü eklenecek (§15).
 Canlı: berberimapp.vercel.app (Vercel projesi `berberim-app`, fra1); Supabase projesi `berberim` (eu-central-1). Ayrıntı README "Canlıya alma".
 Şifre, `DATABASE_URL` ve `createsuperuser` kullanıcıdadır: şifreyle veritabanına bağlanma, hesap oluşturma. `.env`'yi okurken değerleri asla yazdırma (yorum satırlarında da şifre olabilir).
 Vercel MCP'de `list_deployments`/`get_project`'i `teamId` vermeden çağır; build ve runtime logları 403 verir. Supabase MCP: şema Django'nundur, tablo/şema değiştirme.

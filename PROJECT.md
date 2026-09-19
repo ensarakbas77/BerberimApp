@@ -371,7 +371,10 @@ slug = slugify(name.translate(TR_MAP))  # çakışmada sonuna -2, -3 ...
 | `/panel/dukkan/` | Dükkan bilgileri ve konum | 3 |
 | `/panel/calisma-saatleri/` | 7 günlük tek form | 3 |
 | `/panel/hizmetler/` (+ `yeni/`, `<id>/duzenle/`) | Hizmetler | 3 |
+| `/panel/hizmetler/<id>/durum/` | Hizmeti aktifleştir / pasifleştir (POST) | 3 |
+| `/panel/hizmetler/<id>/sil/` | Hizmeti sil (POST) | 3 |
 | `/panel/kapali-gunler/` | Kapalı günler | 3 |
+| `/panel/kapali-gunler/<id>/sil/` | Kapalı günü kaldır (POST) | 3 |
 | `/panel/yayin/` | Yayına al / kaldır (POST) | 3 |
 | `/panel/randevular/?tarih=&durum=` | Günlük randevu listesi | 6 |
 | `/panel/randevular/<id>/` | Randevu detayı ve düzenleme | 6 |
@@ -997,3 +1000,10 @@ Aşağıdakiler prototip için alınmış varsayılan kararlardır; değiştirme
 | 2026-09-19 | Vercel projesini kullanıcı Dashboard'dan oluşturur ve gizli değişkenleri girer; Claude Code deploy ve logları Vercel MCP ile okuyup doğrular (§12.3) | Kullanıcı tercihi; gizli değerler araçlara girmesin |
 | 2026-09-19 | Supabase veritabanı şifresini kullanıcı Dashboard'dan belirler; Supabase MCP `create_project` şifre almaz ve bağlantı adresi döndürmez, adresler Connect menüsünden alınır (§12.1) | MCP aracının sınırı; şifre sohbete de girmemeli |
 | 2026-09-19 | `--success` `#15803D` → `#147A38` (§9.2). Eski değer `--success-tint` üzerinde 4.30:1 veriyordu, yeni değer 4.65:1 (AA ≥ 4.5:1) | §9.8'deki erişilebilirlik hedefi; "Tamamlandı" rozeti ve başarı uyarısı |
+| 2026-09-19 | Faz 3 POST adresleri (§8): `/panel/hizmetler/<id>/durum/` (aktif/pasif), `/panel/hizmetler/<id>/sil/`, `/panel/kapali-gunler/<id>/sil/`. Yayın adresi `/panel/yayin/` iki işlem alır (yayına al, yayından kaldır); toggle değil | Tabloda yalnızca liste adresleri vardı; toggle çift tıklamada durumu geri çevirir |
+| 2026-09-19 | `Shop.slug` `Shop.save()` içinde ilk kayıtta üretilir (admin'den eklenen dükkan da slug alır). Ad slug'a çevrilemezse (harf içermiyorsa) taban `berber` olur, çakışmada `berber-2` (§6.2, §7.10) | Boş slug benzersizlik kısıtını kırar |
+| 2026-09-19 | Kapalı (`is_open=False`) bir günün açılış, kapanış ve mola saatleri sunucuda kaydederken temizlenir (null) (§6.3) | Eski saatler `is_open_at` ve müsaitlik hesabına sızmasın |
+| 2026-09-19 | `Service.price` girilirse 0'dan büyük olmalı (bilinmiyorsa boş bırakılır). `sort_order` yeni hizmette otomatik en sona atanır; Faz 3'te sıralama arayüzü yok. Aynı ad tekrarlanabilir (§6.4) | Sıralama arayüzü Faz 3 tanımında yok; ücretsiz hizmet "0 ₺" görünmesin |
+| 2026-09-19 | Yayın ön koşulları (ad, adres, telefon, en az bir açık gün, en az bir aktif hizmet) yalnızca yayına alırken zorunludur. Yayındayken bozulurlarsa dükkan kendiliğinden yayından kalkmaz; `/panel/` özetinde uyarı çıkar (§13 Faz 3) | Sahibin sürpriz biçimde vitrinden düşmesini önlemek |
+| 2026-09-19 | Hizmet silme onayı `panel.js` ile `confirm()`; JS yoksa onaysız çalışır (Faz 6 iptal onayıyla aynı yaklaşım). Faz 3'te silme koşulsuzdur; randevu kontrolü Faz 5'te `delete_service`'e eklenir (§6.4) | Randevu modeli Faz 5'te geliyor; kayıt geri alınabilir tek işlem olan pasifleştirme zaten var |
+| 2026-09-19 | Leaflet 1.9.4 unpkg CDN'inden SRI'lı yüklenir, yalnızca `/panel/dukkan/` sayfasında; karolar OpenStreetMap. Karo isteklerinin Referer göndermesi için katmana `referrerPolicy` verilir (Django'nun varsayılan `same-origin` politikası OSM'nin Referer şartını bozar); genel `SECURE_REFERRER_POLICY` değişmez (§4, §13 Faz 3) | OSM karo kullanım politikası Referer ister |

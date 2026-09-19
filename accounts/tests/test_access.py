@@ -34,12 +34,12 @@ class RoleAccessTests(TestCase):
     # Sahip müşteri sayfalarına giremez
     def test_owner_is_sent_to_panel_from_customer_pages(self):
         self.as_owner()
-        self.assertRedirects(self.client.get("/test/musteri/"), "/panel/")
+        self.assertRedirects(self.client.get("/test/musteri/"), "/panel/", fetch_redirect_response=False)
 
     def test_owner_reaches_owner_pages(self):
         self.as_owner()
         self.assertContains(self.client.get("/test/sahip/"), "sahip sayfası")
-        self.assertContains(self.client.get("/panel/"), "Dükkan kurulumu yakında.")
+        self.assertEqual(self.client.get("/panel/dukkan/").status_code, 200)
 
     # Müşteri panele giremez
     def test_customer_is_sent_home_from_panel(self):
@@ -57,13 +57,3 @@ class RoleAccessTests(TestCase):
     def test_role_checks_apply_to_post_requests_too(self):
         self.as_customer()
         self.assertRedirects(self.client.post("/panel/"), "/")
-
-
-class PanelPageTests(TestCase):
-    def test_panel_shows_temporary_content_to_owners(self):
-        make_owner()
-        self.client.login(email="sahip@example.com", password=PASSWORD)
-        response = self.client.get("/panel/")
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "<h1>Panel</h1>")
-        self.assertContains(response, "Dükkan kurulumu yakında.")

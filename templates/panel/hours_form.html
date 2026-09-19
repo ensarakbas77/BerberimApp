@@ -1,0 +1,41 @@
+{% extends "panel/base_panel.html" %}
+
+{% block title %}Çalışma saatleri | Berberim{% endblock %}
+
+{% block panel_content %}
+<h1>Çalışma saatleri</h1>
+<p class="lead">Her gün için açık olup olmadığını ve saatlerini gir. Mola yoksa mola alanlarını boş bırak.</p>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  {{ formset.management_form }}
+  {% if formset.non_form_errors %}
+  <div class="alert alert--error form-alert" role="alert">
+    {% for error in formset.non_form_errors %}<p class="alert__text">{{ error }}</p>{% endfor %}
+  </div>
+  {% elif formset.total_error_count %}
+  <div class="alert alert--error form-alert" role="alert">
+    <p class="alert__text">Bazı günlerde düzeltilmesi gereken alanlar var.</p>
+  </div>
+  {% endif %}
+
+  <div class="hours">
+    {% for form in formset %}
+    <fieldset class="hours-day panel">
+      <legend class="hours-day__name">{{ form.instance.get_weekday_display }}</legend>
+      {% include "partials/_form_checkbox.html" with field=form.is_open %}
+      <div class="hours-day__times">
+        {% include "partials/_form_field.html" with field=form.open_time %}
+        {% include "partials/_form_field.html" with field=form.close_time %}
+        {% include "partials/_form_field.html" with field=form.break_start %}
+        {% include "partials/_form_field.html" with field=form.break_end %}
+      </div>
+      {% for error in form.non_field_errors %}<p class="field__error">{{ error }}</p>{% endfor %}
+      {{ form.id }}
+    </fieldset>
+    {% endfor %}
+  </div>
+
+  <button type="submit" class="btn btn--primary btn--block hours__submit">Kaydet</button>
+</form>
+{% endblock %}

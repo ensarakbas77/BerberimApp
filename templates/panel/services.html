@@ -1,0 +1,43 @@
+{% extends "panel/base_panel.html" %}
+{% load berberim %}
+
+{% block title %}Hizmetler | Berberim{% endblock %}
+
+{% block panel_content %}
+<h1>Hizmetler</h1>
+<p class="lead">Müşteriler randevuyu bu hizmetlerden biri için alır. Pasif hizmet randevu ekranında görünmez.</p>
+<p><a class="btn btn--primary" href="{% url 'panel:service_create' %}">Hizmet ekle</a></p>
+
+{% if services %}
+<ul class="row-list">
+  {% for service in services %}
+  <li class="row{% if not service.is_active %} row--inactive{% endif %}">
+    <div class="row__main">
+      <h2 class="row__title">{{ service.name }}</h2>
+      <p class="row__meta">
+        <span class="tabular">{{ service.duration_minutes }} dk</span>
+        <span class="tabular">{{ service.price|price }}</span>
+        {% if not service.is_active %}<span class="badge badge--closed">Pasif</span>{% endif %}
+      </p>
+    </div>
+    <div class="row__actions">
+      <a class="btn btn--secondary" href="{% url 'panel:service_edit' service.pk %}">Düzenle<span class="visually-hidden">: {{ service.name }}</span></a>
+      <form method="post" action="{% url 'panel:service_toggle' service.pk %}" class="inline-form">
+        {% csrf_token %}
+        <input type="hidden" name="active" value="{% if service.is_active %}0{% else %}1{% endif %}">
+        <button type="submit" class="btn btn--secondary">{% if service.is_active %}Pasifleştir{% else %}Aktifleştir{% endif %}<span class="visually-hidden">: {{ service.name }}</span></button>
+      </form>
+      <form method="post" action="{% url 'panel:service_delete' service.pk %}" class="inline-form" data-confirm="“{{ service.name }}” hizmetini silmek istediğine emin misin? Bu işlem geri alınamaz.">
+        {% csrf_token %}
+        <button type="submit" class="btn btn--danger">Sil<span class="visually-hidden">: {{ service.name }}</span></button>
+      </form>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="panel">
+  <p>Henüz hizmetin yok. Dükkanını yayına almak için en az bir hizmet ekle, ör. Saç kesimi.</p>
+</div>
+{% endif %}
+{% endblock %}

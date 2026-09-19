@@ -1,0 +1,44 @@
+{% extends "panel/base_panel.html" %}
+
+{% block title %}Kapalı günler | Berberim{% endblock %}
+
+{% block panel_content %}
+<h1>Kapalı günler</h1>
+<p class="lead">Bayram ya da izin gibi dükkanın kapalı olduğu günleri ekle. Haftalık kapalı günlerini çalışma saatlerinden ayarlarsın.</p>
+
+<form method="post" novalidate class="panel form-panel">
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+  <div class="alert alert--error form-alert" role="alert">
+    {% for error in form.non_field_errors %}<p class="alert__text">{{ error }}</p>{% endfor %}
+  </div>
+  {% endif %}
+  {% include "partials/_form_field.html" with field=form.date %}
+  {% include "partials/_form_field.html" with field=form.note %}
+  <button type="submit" class="btn btn--primary">Kapalı gün ekle</button>
+</form>
+
+<h2 class="section-title">Yaklaşan kapalı günler</h2>
+{% if closures %}
+<ul class="row-list">
+  {% for closure in closures %}
+  <li class="row">
+    <div class="row__main">
+      <h3 class="row__title"><time datetime="{{ closure.date|date:'Y-m-d' }}">{{ closure.date|date:"j F Y l" }}</time></h3>
+      {% if closure.note %}<p class="row__meta"><span>{{ closure.note }}</span></p>{% endif %}
+    </div>
+    <div class="row__actions">
+      <form method="post" action="{% url 'panel:closure_delete' closure.pk %}" class="inline-form">
+        {% csrf_token %}
+        <button type="submit" class="btn btn--danger">Kaldır<span class="visually-hidden">: {{ closure.date|date:"j F Y" }}</span></button>
+      </form>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="panel">
+  <p>Yaklaşan kapalı gün yok. Bayram ya da izin günlerini yukarıdan ekle.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "panel/base_panel.html" %}
+
+{% block title %}{% if service %}Hizmeti düzenle{% else %}Hizmet ekle{% endif %} | Berberim{% endblock %}
+
+{% block panel_content %}
+<h1>{% if service %}Hizmeti düzenle{% else %}Hizmet ekle{% endif %}</h1>
+
+<form method="post" novalidate class="panel form-panel">
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+  <div class="alert alert--error form-alert" role="alert">
+    {% for error in form.non_field_errors %}<p class="alert__text">{{ error }}</p>{% endfor %}
+  </div>
+  {% endif %}
+  {% include "partials/_form_field.html" with field=form.name %}
+  {% include "partials/_form_field.html" with field=form.duration_minutes %}
+  {% include "partials/_form_field.html" with field=form.price %}
+  <div class="form-actions">
+    <button type="submit" class="btn btn--primary">Kaydet</button>
+    <a class="btn btn--secondary" href="{% url 'panel:services' %}">Vazgeç</a>
+  </div>
+</form>
+{% endblock %}

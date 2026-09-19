@@ -260,3 +260,253 @@ textarea.input {
   color: var(--ink-2);
   font-size: var(--fs-18);
 }
+
+/* hidden özniteliği, display veren sınıflara (.btn vb.) rağmen çalışsın */
+[hidden] {
+  display: none !important;
+}
+
+/* JS yoksa yalnızca JS ile anlam kazanan öğeler gizlenir */
+html:not(.js) .js-only {
+  display: none;
+}
+
+/* Panel (Faz 3): alt menü, özet, kontrol listesi */
+.panel-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+}
+
+.panel-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.panel-nav a:hover {
+  border-color: var(--ink-2);
+}
+
+.panel-nav a[aria-current="page"] {
+  border-color: var(--cobalt);
+  background: var(--cobalt-tint);
+  color: var(--cobalt);
+}
+
+.panel h2 {
+  font-size: var(--fs-22);
+}
+
+.panel-grid {
+  display: grid;
+  gap: 20px;
+}
+
+@media (min-width: 768px) {
+  .panel-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+.checklist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checklist li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.checklist li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.checklist__label {
+  flex: 1 1 10ch;
+  font-weight: 600;
+}
+
+.checklist__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+}
+
+/* Formlar: dar sütun, onay kutusu, sayfa altı işlemler */
+.form-panel {
+  max-width: 640px;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--tap);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.check__input {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  accent-color: var(--cobalt);
+}
+
+select.input {
+  padding-right: 8px;
+}
+
+/* Harita (Leaflet): kendi katman bağlamında kalsın, sayfa menüsünün üstüne çıkmasın */
+.map {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+  width: 100%;
+  height: 300px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+}
+
+@media (min-width: 640px) {
+  .map {
+    height: 400px;
+  }
+}
+
+/* Çalışma saatleri: gün gün alt alta; saat alanları mobilde ikişerli */
+.hours {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.hours-day {
+  min-width: 0;
+  margin: 0;
+}
+
+.hours-day__name {
+  float: left;
+  width: 100%;
+  margin: 0 0 8px;
+  padding: 0;
+  font-size: var(--fs-22);
+  font-stretch: 75%;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.hours-day__name + * {
+  clear: both;
+}
+
+.hours-day__times {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 0 12px;
+}
+
+.hours-day__times .field {
+  margin-bottom: 12px;
+}
+
+@media (min-width: 900px) {
+  .hours-day__times {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.hours__submit {
+  max-width: 320px;
+}
+
+/* Satır listeleri: hizmetler, kapalı günler */
+.row-list {
+  margin: 0 0 24px;
+  padding: 0 20px;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+}
+
+.row:first-child {
+  border-top: 0;
+}
+
+.row__main {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.row__title {
+  margin: 0 0 4px;
+  font-size: var(--fs-18);
+  overflow-wrap: anywhere;
+}
+
+.row--inactive .row__title {
+  color: var(--ink-2);
+}
+
+.row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.inline-form {
+  margin: 0;
+}
+
+.section-title {
+  margin-top: 32px;
+  font-size: var(--fs-22);
+}

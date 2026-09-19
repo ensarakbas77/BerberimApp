@@ -41,7 +41,7 @@ class LoginTests(TestCase):
 
     def test_owner_always_goes_to_panel(self):
         response = self.login("sahip@example.com", next="/randevularim/")
-        self.assertRedirects(response, "/panel/")
+        self.assertRedirects(response, "/panel/", fetch_redirect_response=False)
 
     def test_email_is_case_insensitive(self):
         response = self.login("  MUSTERI@Example.COM ")
@@ -100,7 +100,7 @@ class LoginTests(TestCase):
         self.assertRedirects(self.client.get(LOGIN_URL), "/")
         self.client.logout()
         self.client.login(email="sahip@example.com", password=PASSWORD)
-        self.assertRedirects(self.client.get(LOGIN_URL), "/panel/")
+        self.assertRedirects(self.client.get(LOGIN_URL), "/panel/", fetch_redirect_response=False)
 
     def test_csrf_is_enforced(self):
         client = Client(enforce_csrf_checks=True)

@@ -74,14 +74,14 @@ class CustomerRegistrationTests(TestCase):
 class OwnerRegistrationTests(TestCase):
     def test_creates_owner_and_goes_to_panel(self):
         response = self.client.post(OWNER_URL, registration_data(username="kemal_usta", email="kemal@example.com"))
-        self.assertRedirects(response, "/panel/")
+        self.assertRedirects(response, "/panel/", fetch_redirect_response=False)
         user = User.objects.get(email="kemal@example.com")
         self.assertEqual(user.role, User.Role.OWNER)
         self.assertEqual(int(self.client.session["_auth_user_id"]), user.pk)
 
     def test_ignores_next(self):
         response = self.client.post(OWNER_URL + "?next=/randevularim/", registration_data())
-        self.assertRedirects(response, "/panel/")
+        self.assertRedirects(response, "/panel/", fetch_redirect_response=False)
 
     def test_role_cannot_be_overridden_from_the_form(self):
         self.client.post(OWNER_URL, registration_data(role="customer"))
@@ -233,7 +233,7 @@ class AuthenticatedVisitorTests(TestCase):
         self.client.login(email="sahip@example.com", password=PASSWORD)
         for url in [CUSTOMER_URL, OWNER_URL]:
             with self.subTest(url=url):
-                self.assertRedirects(self.client.get(url), "/panel/")
+                self.assertRedirects(self.client.get(url), "/panel/", fetch_redirect_response=False)
 
     def test_authenticated_post_does_not_create_another_account(self):
         make_user()

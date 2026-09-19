@@ -88,8 +88,9 @@ Ortam değişkeni `.env` dosyasındaki değeri geçersiz kıldığı için `.env
 | `config/` | Django ayarları ve ana URL yapılandırması |
 | `core/` | Ana sayfa ve sağlık kontrolü |
 | `accounts/` | Özel kullanıcı modeli (e-posta ile giriş, kullanıcı adı, rol), müşteri ve dükkan sahibi kaydı, giriş, çıkış, profil, rol decorator'ları |
-| `panel/` | Dükkan sahibi paneli (şimdilik geçici bir sayfa) |
-| `shops/`, `bookings/` | Sonraki fazlarda doldurulacak |
+| `shops/` | Dükkan, çalışma saatleri, hizmet ve kapalı gün modelleri; slug, `is_open_at`, yayın ön koşulları (`services.py`) |
+| `panel/` | Dükkan sahibi paneli: dükkan bilgileri ve konum (Leaflet), çalışma saatleri, hizmetler, kapalı günler, yayına alma |
+| `bookings/` | Faz 5'te doldurulacak |
 | `templates/`, `static/` | Şablonlar, CSS, JS ve görseller |
 
 ## Canlıya alma (Supabase + Vercel)
@@ -199,4 +200,6 @@ Prototipte bilinen eksikler (ayrıntılar için PROJECT.md §14):
 
 - **Giriş denemelerine hız sınırı yok.** Site herkese açık olduğu için şifre deneme saldırılarına karşı ileride bir sınırlama (ör. başarısız denemelerde bekleme) eklenmeli. Ek paket kullanılmadığından prototipte yapılmadı.
 - **E-posta doğrulama ve şifre sıfırlama yok.** Şifresini unutan kullanıcı için şimdilik site yöneticisi Django admin'den yardımcı olur.
+- **Hizmetlerin sırası panelden değiştirilemez.** Yeni hizmet listenin sonuna eklenir (PROJECT.md §15).
+- **Konum seçimi fare ya da dokunmatik içindir.** Klavyeyle haritayı kaydırıp Enter ile ortadaki noktayı seçmek mümkün, ama koordinat girişi yok. Konum isteğe bağlıdır.
 - **Dükkan sahibi menüsünde Profil bağlantısı yok** (PROJECT.md §8'deki menü listesine uygun). Sahip `/hesap/profil/` adresine doğrudan girerek kullanıcı adını ve telefonunu düzenleyebilir.

@@ -116,7 +116,10 @@ class EmailPrivacyTests(TestCase):
 
     def test_owner_does_not_see_own_email_outside_profile(self):
         self.client.login(email="sahip.gizli@example.com", password=PASSWORD)
-        self.assertNotContains(self.client.get("/panel/"), "sahip.gizli@example.com")
+        # Dükkansız sahip /panel/ adresinden kurulum formuna yönlenir; iki sayfada da e-posta görünmez.
+        for url in ["/panel/", "/panel/dukkan/"]:
+            with self.subTest(url=url):
+                self.assertNotContains(self.client.get(url, follow=True), "sahip.gizli@example.com")
         self.assertContains(self.client.get(PROFILE_URL), "sahip.gizli@example.com")
 
 
