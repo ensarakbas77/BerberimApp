@@ -15,7 +15,25 @@
     {# Menü öğeleri (PROJECT.md §8) sayfaları geldikçe eklenir; ölü link bırakılmaz. #}
     <nav id="site-nav" class="site-nav" aria-label="Ana menü">
       <ul>
-        <li><a href="{% url 'core:home' %}">Ana sayfa</a></li>
+        {% if user.is_authenticated %}
+          {% if user.role == "owner" %}
+            <li><a href="{% url 'panel:home' %}">Panel</a></li>
+            <li>{% include "partials/_logout_form.html" %}</li>
+          {% else %}
+            <li>
+              <details class="user-menu">
+                <summary>@{{ user.username }}</summary>
+                <ul>
+                  <li><a href="{% url 'accounts:profile' %}">Profil</a></li>
+                  <li>{% include "partials/_logout_form.html" %}</li>
+                </ul>
+              </details>
+            </li>
+          {% endif %}
+        {% else %}
+          <li><a href="{% url 'accounts:login' %}">Giriş yap</a></li>
+          <li><a href="{% url 'accounts:register' %}">Kayıt ol</a></li>
+        {% endif %}
       </ul>
     </nav>
   </div>

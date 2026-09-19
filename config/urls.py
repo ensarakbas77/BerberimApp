@@ -7,5 +7,7 @@ admin.site.index_title = "Yönetim paneli"
 
 urlpatterns = [
     path("yonetim/", admin.site.urls),
+    path("hesap/", include("accounts.urls")),
+    path("panel/", include("panel.urls")),
     path("", include("core.urls")),
 ]

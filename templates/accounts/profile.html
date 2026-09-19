@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Profil | Berberim{% endblock %}
+
+{% block content %}
+<section class="auth">
+  <h1>Profil</h1>
+  <div class="panel">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="field">
+        <label class="field__label" for="profile-email">E-posta</label>
+        <input class="input" id="profile-email" type="email" value="{{ request.user.email }}" disabled aria-describedby="profile-email_hint">
+        <span class="field__hint" id="profile-email_hint">E-posta değiştirilemez. Yalnızca sen görürsün.</span>
+      </div>
+      <div class="field">
+        <span class="field__label">Hesap türü</span>
+        <span>{{ request.user.get_role_display }}</span>
+      </div>
+      {% include "partials/_form_field.html" with field=form.username %}
+      {% include "partials/_form_field.html" with field=form.phone %}
+      <button type="submit" class="btn btn--primary btn--block">Kaydet</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

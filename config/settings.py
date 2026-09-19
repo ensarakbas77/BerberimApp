@@ -14,6 +14,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
 
+TESTING = "test" in sys.argv
+
+
 def env_list(name):
     """Virgülle ayrılmış ortam değişkenini listeye çevirir."""
     return [item.strip() for item in os.environ.get(name, "").split(",") if item.strip()]
@@ -76,6 +79,10 @@ TEMPLATES = [
 
 # Veritabanı: DATABASE_URL yoksa (ya da boşsa) yerelde SQLite.
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
+if TESTING:
+    # PROJECT.md §4: testler her zaman SQLite'ta çalışır. .env'de canlı adres olsa bile
+    # Django canlı sunucuda test veritabanı açmaya kalkmasın.
+    DATABASE_URL = ""
 if DATABASE_URL:
     DATABASES = {
         # Serverless: bağlantıyı istek sonunda kapat.
@@ -100,6 +107,7 @@ if DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql":
     )
 
 AUTH_USER_MODEL = "accounts.User"
+LOGIN_URL = "accounts:login"
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -127,8 +135,12 @@ STORAGES = {
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
 # DEBUG=True ve testlerde varsayılan depolama (manifest hatası almamak için).
-if not DEBUG and "test" not in sys.argv:
+if not DEBUG and not TESTING:
     STORAGES["staticfiles"]["BACKEND"] = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+if TESTING:
+    # Testler yüzlerce şifre karması üretir; varsayılan PBKDF2 (1 milyon tur) onları dakikalarca yavaşlatır.
+    PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
 if not DEBUG:
     # Vercel HTTPS'i uçta sonlandırır; Django isteğin güvenli olduğunu bu başlıktan anlar.

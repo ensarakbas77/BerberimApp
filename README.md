@@ -56,6 +56,8 @@ python manage.py makemigrations --check --dry-run
 python manage.py test
 ```
 
+Testler her zaman SQLite'ta çalışır: `.env` dosyasında `DATABASE_URL` dolu olsa bile Django canlı veritabanında test veritabanı açmaz. Yine de `DATABASE_URL`'i `.env`'de dolu bırakma; yerel `runserver` canlı veritabanına bağlanır.
+
 ## Üretim benzeri çalıştırma (404 ve 500 sayfalarını görmek)
 
 `DJANGO_DEBUG=True` iken Django kendi teknik hata sayfalarını gösterir. Bu yüzden olmayan bir adreste (ör. `/deneme`) Berberim'in 404 sayfası yerine Django'nun "Page not found" ekranı çıkar. Berberim'in kendi hata sayfalarını görmek için `DEBUG`'ı kapatarak çalıştır. Bu modda statik dosyalar `collectstatic` ile toplanır; CSS veya JS değiştirdikçe komutu yeniden çalıştırman gerekir.
@@ -85,8 +87,9 @@ Ortam değişkeni `.env` dosyasındaki değeri geçersiz kıldığı için `.env
 |---|---|
 | `config/` | Django ayarları ve ana URL yapılandırması |
 | `core/` | Ana sayfa ve sağlık kontrolü |
-| `accounts/` | Özel kullanıcı modeli (e-posta ile giriş, kullanıcı adı, rol) |
-| `shops/`, `bookings/`, `panel/` | Sonraki fazlarda doldurulacak |
+| `accounts/` | Özel kullanıcı modeli (e-posta ile giriş, kullanıcı adı, rol), müşteri ve dükkan sahibi kaydı, giriş, çıkış, profil, rol decorator'ları |
+| `panel/` | Dükkan sahibi paneli (şimdilik geçici bir sayfa) |
+| `shops/`, `bookings/` | Sonraki fazlarda doldurulacak |
 | `templates/`, `static/` | Şablonlar, CSS, JS ve görseller |
 
 ## Canlıya alma (Supabase + Vercel)
@@ -189,3 +192,11 @@ Remove-Item Env:DJANGO_DEBUG
 - **W008 (`SECURE_SSL_REDIRECT`)** ve **W004 (`SECURE_HSTS_SECONDS`):** Vercel CDN'i HTTP isteklerini kendisi HTTPS'e (308) yönlendirir ve `Strict-Transport-Security` başlığını kendisi ekler. Aynı şeyi Django'da ikinci kez yapmak gereksiz, HSTS ise geri dönüşü zor bir taahhüttür. Uygulamayı Vercel dışında bir sunucuya taşırsan bu iki ayarı Django'da aç.
 
 Çerez ve proxy güvenliği ayarları (`SECURE_PROXY_SSL_HEADER`, `SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE`) `DEBUG` kapalıyken otomatik devreye girer.
+
+## Sonraki adımlar
+
+Prototipte bilinen eksikler (ayrıntılar için PROJECT.md §14):
+
+- **Giriş denemelerine hız sınırı yok.** Site herkese açık olduğu için şifre deneme saldırılarına karşı ileride bir sınırlama (ör. başarısız denemelerde bekleme) eklenmeli. Ek paket kullanılmadığından prototipte yapılmadı.
+- **E-posta doğrulama ve şifre sıfırlama yok.** Şifresini unutan kullanıcı için şimdilik site yöneticisi Django admin'den yardımcı olur.
+- **Dükkan sahibi menüsünde Profil bağlantısı yok** (PROJECT.md §8'deki menü listesine uygun). Sahip `/hesap/profil/` adresine doğrudan girerek kullanıcı adını ve telefonunu düzenleyebilir.

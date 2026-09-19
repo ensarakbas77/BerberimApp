@@ -102,6 +102,19 @@ class DatabaseSettingsTests(SimpleTestCase):
         self.assertEqual(db["ENGINE"], "django.db.backends.sqlite3")
         self.assertEqual(Path(db["NAME"]), BASE_DIR / "db.sqlite3")
 
+    def test_tests_never_use_a_remote_database_even_if_database_url_is_set(self):
+        s = load_settings(argv=("manage.py", "test"), DATABASE_URL=FAKE_POOLER_URL)
+        db = s["DATABASES"]["default"]
+        self.assertEqual(db["ENGINE"], "django.db.backends.sqlite3")
+        self.assertNotIn("HOST", db)
+
+    def test_fast_password_hasher_is_used_only_while_testing(self):
+        self.assertEqual(
+            load_settings(argv=("manage.py", "test"))["PASSWORD_HASHERS"],
+            ["django.contrib.auth.hashers.MD5PasswordHasher"],
+        )
+        self.assertNotIn("PASSWORD_HASHERS", load_settings())
+
     def test_supabase_transaction_pooler_settings(self):
         db = load_settings(DATABASE_URL=FAKE_POOLER_URL)["DATABASES"]["default"]
         self.assertEqual(db["ENGINE"], "django.db.backends.postgresql")

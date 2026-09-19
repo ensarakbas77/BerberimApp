@@ -1,0 +1,12 @@
+{% comment %}Kullanım: {% include "partials/_form_field.html" with field=form.username %}
+Etiket inputun üstünde, hata alanın altında (PROJECT.md §9.4).{% endcomment %}
+<div class="field{% if field.errors %} field--error{% endif %}">
+  <label class="field__label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+  {{ field }}
+  {% if field.errors %}
+  <div id="{{ field.auto_id }}_error">
+    {% for error in field.errors %}<p class="field__error">{{ error }}</p>{% endfor %}
+  </div>
+  {% endif %}
+  {% if field.help_text %}<span class="field__hint" id="{{ field.auto_id }}_hint">{{ field.help_text }}</span>{% endif %}
+</div>

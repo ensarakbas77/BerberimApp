@@ -232,6 +232,24 @@ textarea.input {
   background: var(--surface);
 }
 
+/* Hesap sayfaları: dar tek sütun, sola hizalı */
+.auth {
+  max-width: 480px;
+}
+
+.auth .panel {
+  margin-bottom: 20px;
+}
+
+.auth__links {
+  margin: 0 0 4px;
+  color: var(--ink-2);
+}
+
+.form-alert {
+  margin-bottom: 16px;
+}
+
 /* Sayfa bölümleri */
 .hero {
   padding-block: 16px 8px;

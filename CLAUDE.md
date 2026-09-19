@@ -25,7 +25,15 @@ Python 3.12, Django 5.2 LTS (sunucuda render edilen şablonlar), psycopg 3, Whit
 7. Her POST CSRF korumalı; sahip yalnızca kendi dükkanına erişir, başkasınınkine 404.
 8. Gizli bilgi koda girmez; `.env` git'e girmez. Mevcut migration dosyaları düzenlenmez.
 9. "Şimdi" her zaman `timezone.localtime()` ile alınır; `date.today()` kullanılmaz.
-10. Faz sonu: check, makemigrations --check --dry-run, test; kabul kriterlerini ✅/❌ raporla, commit mesajı öner (commit'i kullanıcı atar).
+10. Faz sonu: check, makemigrations --check --dry-run, test; kabul kriterlerini ✅/❌ raporla, Türkçe commit mesajı öner. Kullanıcı "commit et" derse commit ve push yap, istemeden yapma.
+11. Testler SQLite'ta koşar; `.env`'de canlı `DATABASE_URL` olsa bile. Canlı veritabanına yalnızca `scripts/migrate-production.ps1` bağlanır ve şifreyi kullanıcı verir.
 
 ## Yapı
-`config/` ayarlar; `core/` ana sayfa ve sağlık kontrolü; `accounts/` özel User; `shops/`, `bookings/`, `panel/` sonraki fazlarda dolar. Şablonlar `templates/`, statik dosyalar `static/`.
+`config/` ayarlar; `core/` ana sayfa, sağlık kontrolü, ortak form mixin'i; `accounts/` özel User, kayıt/giriş/profil, `customer_required`/`owner_required`; `panel/` sahip paneli (Faz 3'te dolar); `shops/`, `bookings/` sonraki fazlarda dolar. Şablonlar `templates/`, statik dosyalar `static/`.
+
+## Durum ve canlı ortam
+Faz 0–2 tamam (iskelet, canlı yayın, hesaplar ve roller); sıradaki Faz 3 (dükkan kurulumu). Kararlar PROJECT.md §15'te.
+Canlı: berberimapp.vercel.app (Vercel projesi `berberim-app`, fra1); Supabase projesi `berberim` (eu-central-1). Ayrıntı README "Canlıya alma".
+Şifre, `DATABASE_URL` ve `createsuperuser` kullanıcıdadır: şifreyle veritabanına bağlanma, hesap oluşturma. `.env`'yi okurken değerleri asla yazdırma (yorum satırlarında da şifre olabilir).
+Vercel MCP'de `list_deployments`/`get_project`'i `teamId` vermeden çağır; build ve runtime logları 403 verir. Supabase MCP: şema Django'nundur, tablo/şema değiştirme.
+Açık iş: Supabase'de kalıntı `test_postgres` veritabanı (zararsız); silmek kullanıcı onayı ister.

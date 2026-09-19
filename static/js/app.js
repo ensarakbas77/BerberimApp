@@ -30,6 +30,25 @@
     });
   }
 
+  // Kullanıcı menüsü: dışarı tıklayınca ya da Esc ile kapanır.
+  function closeUserMenus(except) {
+    document.querySelectorAll(".user-menu[open]").forEach(function (menu) {
+      if (menu !== except) {
+        menu.removeAttribute("open");
+      }
+    });
+  }
+
+  document.addEventListener("click", function (event) {
+    closeUserMenus(event.target.closest(".user-menu"));
+  });
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+      closeUserMenus(null);
+    }
+  });
+
   document.addEventListener("click", function (event) {
     var button = event.target.closest("[data-dismiss]");
     if (!button) {

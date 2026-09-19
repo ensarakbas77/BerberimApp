@@ -195,11 +195,14 @@ time {
 .nav-toggle__bars::after { top: 6px; }
 
 .site-nav ul {
-  display: flex;
-  flex-direction: column;
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.site-nav > ul {
+  display: flex;
+  flex-direction: column;
 }
 
 .site-nav a {
@@ -213,6 +216,58 @@ time {
 
 .site-nav a:hover {
   color: var(--cobalt);
+}
+
+/* Çıkış: POST formu içinde, menü bağlantısı gibi görünen düğme */
+.nav-form {
+  margin: 0;
+}
+
+.nav-link-button {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.nav-link-button:hover {
+  color: var(--cobalt);
+}
+
+/* Kullanıcı menüsü (<details>): JS olmadan da açılıp kapanır */
+.user-menu > summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+}
+
+.user-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.user-menu > summary::after {
+  content: "";
+  margin-left: 8px;
+  border: 5px solid transparent;
+  border-top-color: currentColor;
+  border-bottom-width: 0;
+}
+
+.user-menu[open] > summary::after {
+  transform: rotate(180deg);
+}
+
+.user-menu > ul {
+  padding-left: 12px;
 }
 
 /* Mobil menü: yalnızca JS varsa açılır/kapanır, yoksa her zaman görünür */
@@ -252,9 +307,27 @@ time {
     font-size: 1.0625rem;
   }
 
-  .site-nav ul {
+  .site-nav > ul {
     flex-direction: row;
+    align-items: center;
     gap: 24px;
+  }
+
+  /* Kullanıcı menüsü masaüstünde açılır kutu olur */
+  .user-menu {
+    position: relative;
+  }
+
+  .user-menu > ul {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 60;
+    min-width: 180px;
+    padding: 4px 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-control);
   }
 }
 

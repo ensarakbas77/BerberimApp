@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Kayıt ol | Berberim{% endblock %}
+{% block meta_description %}Berberim'de müşteri hesabı aç, berberlerin boş saatlerinden randevu al.{% endblock %}
+
+{% block content %}
+<section class="auth">
+  <h1>Kayıt ol</h1>
+  <p class="lead">Randevu almak için müşteri hesabı aç.</p>
+  <div class="panel">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% include "partials/_form_field.html" with field=form.username %}
+      {% include "partials/_form_field.html" with field=form.email %}
+      {% include "partials/_form_field.html" with field=form.password1 %}
+      {% include "partials/_form_field.html" with field=form.password2 %}
+      {% include "partials/_form_field.html" with field=form.phone %}
+      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+      <button type="submit" class="btn btn--primary btn--block">Hesap aç</button>
+    </form>
+  </div>
+  <p class="auth__links">Zaten hesabın var mı? <a href="{% url 'accounts:login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Giriş yap</a></p>
+  <p class="auth__links">Berber misin? <a href="{% url 'accounts:register_owner' %}">Dükkan hesabı aç</a></p>
+</section>
+{% endblock %}
