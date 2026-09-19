@@ -39,13 +39,28 @@ class DashboardTests(TestCase):
         self.assertContains(response, "Dükkanın hazır.")
         self.assertNotContains(response, "Dükkanını yayına almak için eksikleri tamamla")
 
-    def test_location_and_service_show_as_done(self):
-        add_service(self.shop)
+    def test_location_shows_as_done_while_a_required_step_is_still_missing(self):
         self.shop.latitude, self.shop.longitude = "40.691234", "29.613456"
         self.shop.save()
         response = self.client.get(HOME_URL)
-        self.assertContains(response, '<span class="badge badge--open">Tamam</span>', html=True, count=4)
+        # Bilgiler, konum ve saatler tamam; hizmet eksik.
+        self.assertContains(response, '<span class="badge badge--open">Tamam</span>', html=True, count=3)
+        self.assertContains(response, '<span class="badge badge--unmarked">Eksik</span>', html=True, count=1)
+        self.assertNotContains(response, "İsteğe bağlı")
+
+    def test_checklist_is_hidden_once_every_required_step_is_done(self):
+        add_service(self.shop)
+        response = self.client.get(HOME_URL)
+        self.assertNotContains(response, 'id="setup-title"')
         self.assertNotContains(response, "badge--unmarked")
+        self.assertContains(response, "Dükkanın hazır.")  # yayın kutusu kalır
+
+    def test_checklist_is_hidden_for_a_healthy_published_shop_too(self):
+        add_service(self.shop)
+        services.publish_shop(self.shop)
+        response = self.client.get(HOME_URL)
+        self.assertNotContains(response, 'id="setup-title"')
+        self.assertContains(response, "Yayından kaldır")
 
     def test_setup_links_go_to_the_right_pages(self):
         response = self.client.get(HOME_URL)
@@ -54,7 +69,14 @@ class DashboardTests(TestCase):
 
     def test_panel_menu_links_every_setup_page_and_marks_the_current_one(self):
         response = self.client.get(HOME_URL)
-        for href in ["/panel/", "/panel/dukkan/", "/panel/calisma-saatleri/", "/panel/hizmetler/", "/panel/kapali-gunler/"]:
+        for href in [
+            "/panel/",
+            "/panel/randevular/",
+            "/panel/dukkan/",
+            "/panel/calisma-saatleri/",
+            "/panel/hizmetler/",
+            "/panel/kapali-gunler/",
+        ]:
             self.assertContains(response, f'href="{href}"')
         self.assertContains(response, '<a href="/panel/" aria-current="page">Özet</a>', html=True)
         self.assertContains(self.client.get("/panel/hizmetler/yeni/"), 'href="/panel/hizmetler/" aria-current="page"')

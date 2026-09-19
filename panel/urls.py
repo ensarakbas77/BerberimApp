@@ -16,4 +16,9 @@ urlpatterns = [
     path("kapali-gunler/", views.closure_list, name="closures"),
     path("kapali-gunler/<int:pk>/sil/", views.closure_delete, name="closure_delete"),
     path("yayin/", views.publish, name="publish"),
+    path("randevular/", views.appointment_list, name="appointments"),
+    path("randevular/<int:pk>/", views.appointment_detail, name="appointment_detail"),
+    path("randevular/<int:pk>/durum/", views.appointment_status, name="appointment_status"),
+    path("randevular/<int:pk>/iptal/", views.appointment_cancel, name="appointment_cancel"),
+    path("randevular/<int:pk>/musait-saatler/", views.appointment_slots, name="appointment_slots"),
 ]

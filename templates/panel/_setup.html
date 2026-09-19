@@ -1,0 +1,50 @@
+{% comment %}Yayın durumu kutusu ve (yalnızca zorunlu bir eksik varsa) kurulum listesi. Özet sayfasında kurulum bitmemişse
+randevuların önünde, bitmişse sonunda gösterilir (PROJECT.md §13 Faz 6).{% endcomment %}
+<div class="panel-grid">
+  <section class="panel" aria-labelledby="publish-title">
+    <h2 id="publish-title">{{ shop.name }}</h2>
+    {% if shop.is_published %}
+    <p><span class="badge badge--open">Yayında</span></p>
+    <p>Dükkanın herkese açık. Yayından kaldırırsan müşteriler seni göremez.</p>
+    <form method="post" action="{% url 'panel:publish' %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="unpublish">
+      <button type="submit" class="btn btn--secondary">Yayından kaldır</button>
+    </form>
+    {% else %}
+    <p><span class="badge badge--closed">Yayında değil</span></p>
+    {% if blockers %}
+    <p>{{ blockers_message }}</p>
+    <button type="button" class="btn btn--primary" disabled aria-disabled="true">Yayına al</button>
+    {% else %}
+    <p>Dükkanın hazır. Yayına alınca herkese açık listede görünür.</p>
+    <form method="post" action="{% url 'panel:publish' %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="publish">
+      <button type="submit" class="btn btn--primary">Yayına al</button>
+    </form>
+    {% endif %}
+    {% endif %}
+  </section>
+
+  {% if blockers %}
+  <section class="panel" aria-labelledby="setup-title">
+    <h2 id="setup-title">Kurulum</h2>
+    <ul class="checklist">
+      {% for item in checklist %}
+      <li>
+        <span class="checklist__label">{{ item.label }}</span>
+        {% if item.done %}
+        <span class="badge badge--open">Tamam</span>
+        {% elif item.optional %}
+        <span class="badge badge--closed">İsteğe bağlı</span>
+        {% else %}
+        <span class="badge badge--unmarked">Eksik</span>
+        {% endif %}
+        <a class="checklist__link" href="{{ item.url }}">{% if item.done %}Düzenle{% else %}Tamamla{% endif %}<span class="visually-hidden">: {{ item.label }}</span></a>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+</div>

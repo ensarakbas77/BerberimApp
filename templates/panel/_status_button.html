@@ -1,0 +1,10 @@
+{% comment %}Kullanım: {% include "panel/_status_button.html" with appointment=appointment action="complete" label="Tamamlandı" return_to="liste" %}
+Durum işlemi formu (normal POST, JS gerekmez). Buton adı işlemin sonucu olan durumun adıdır (PROJECT.md §9.7).
+`status_filter` bağlamda varsa işlemden sonra aynı süzgeçli listeye dönülür.{% endcomment %}
+<form method="post" action="{% url 'panel:appointment_status' appointment.pk %}" class="inline-form">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="{{ action }}">
+  <input type="hidden" name="donus" value="{{ return_to }}">
+  {% if status_filter %}<input type="hidden" name="durum" value="{{ status_filter }}">{% endif %}
+  <button type="submit" class="btn btn--secondary">{{ label }}<span class="visually-hidden">: @{{ appointment.customer.username }}, {{ appointment.start_time|time:"H:i" }}</span></button>
+</form>

@@ -1,0 +1,121 @@
+{% extends "panel/base_panel.html" %}
+{% load static berberim %}
+
+{% block title %}Randevu: @{{ appointment.customer.username }} | Berberim{% endblock %}
+
+{% block panel_content %}
+<p class="back-link"><a href="{{ list_url }}">Randevulara dön</a></p>
+<h1>Randevu</h1>
+
+<section class="panel form-panel detail-panel" aria-labelledby="summary-title">
+  <div class="appointment__head">
+    <h2 id="summary-title" class="appointment__shop">@{{ appointment.customer.username }}</h2>
+    {% include "partials/_status_badge.html" with status=appointment.display_status %}
+  </div>
+  <p class="appointment__when tabular">
+    <time datetime="{{ appointment.date|date:'Y-m-d' }}">{{ appointment.date|date:"j F Y l" }}</time>
+    <span>{{ appointment.start_time|time:"H:i" }}–{{ appointment.end_time|time:"H:i" }}</span>
+  </p>
+  <p class="appointment__service">
+    <span>{{ appointment.service_name }}</span>
+    <span class="tabular">{{ appointment.duration_minutes }} dk</span>
+    {% if appointment.price is not None %}<span class="tabular">{{ appointment.price|price }}</span>{% endif %}
+  </p>
+  {% if appointment.customer.phone %}<p class="appointment__info">Telefon: <a href="tel:{{ appointment.customer.phone|tel_href }}">{{ appointment.customer.phone|phone }}</a></p>{% endif %}
+  {% if appointment.customer_note %}<p class="appointment__info">Müşteri notu: {{ appointment.customer_note }}</p>{% endif %}
+  {% if appointment.shop_note %}<p class="appointment__info">Senin notun: {{ appointment.shop_note }}</p>{% endif %}
+  {% if appointment.recent_no_shows %}<p class="shop-appointment__warn">Son {{ appointment.no_show_window_days }} günde {{ appointment.recent_no_shows }} randevuya gelmedi.</p>{% endif %}
+  {% if appointment.status == "cancelled" %}
+  <p class="appointment__info">{% if appointment.cancelled_by == "shop" %}Sen iptal ettin{% if appointment.cancel_reason %}: {{ appointment.cancel_reason }}{% endif %}{% else %}Müşteri iptal etti.{% endif %}</p>
+  {% endif %}
+
+  {% if appointment.actions.complete or appointment.actions.no_show or appointment.actions.unmark %}
+  <div class="shop-appointment__actions">
+    {% if appointment.actions.complete %}{% include "panel/_status_button.html" with action="complete" label="Tamamlandı" return_to="detay" %}{% endif %}
+    {% if appointment.actions.no_show %}{% include "panel/_status_button.html" with action="no_show" label="Gelmedi" return_to="detay" %}{% endif %}
+    {% if appointment.actions.unmark %}{% include "panel/_status_button.html" with action="unmark" label="İşareti kaldır" return_to="detay" %}{% endif %}
+  </div>
+  {% endif %}
+</section>
+
+{% if edit_form %}
+<section class="panel form-panel detail-panel" aria-labelledby="edit-title" id="duzenle">
+  <h2 id="edit-title">Randevuyu düzenle</h2>
+  <p>Hizmeti, günü ya da saati değiştirmek için önce hizmet ve günü seç, sonra listeden yeni saati seç. Müşteri değişikliği Randevularım'da görür.</p>
+
+  <form method="get" action="{% url 'panel:appointment_detail' appointment.pk %}" class="slot-picker" data-slot-picker
+        data-api="{% url 'panel:appointment_slots' appointment.pk %}" data-current-service="{{ appointment.service_id }}"
+        data-current-date="{{ appointment.date|date:'Y-m-d' }}" data-current-time="{{ appointment.start_time|time:'H:i' }}">
+    <div class="field">
+      <label class="field__label" for="picker-service">Hizmet</label>
+      <select id="picker-service" name="hizmet" class="input">
+        {% for choice in edit_services %}
+        <option value="{{ choice.pk }}"{% if choice.pk == selected_service.pk %} selected{% endif %}>{{ choice.name }}, {{ choice.duration_minutes }} dk{% if not choice.is_active %} (pasif){% endif %}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label class="field__label" for="picker-date">Gün</label>
+      <input type="date" id="picker-date" name="tarih" class="input" value="{{ selected_day|date:'Y-m-d' }}" min="{{ min_date|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}">
+    </div>
+    <button type="submit" class="btn btn--secondary" data-picker-submit>Saatleri göster</button>
+  </form>
+
+  <form method="post" action="{% url 'panel:appointment_detail' appointment.pk %}" novalidate data-edit-form>
+    {% csrf_token %}
+    <input type="hidden" name="service" value="{{ selected_service.pk }}" data-mirror="service">
+    <input type="hidden" name="date" value="{{ selected_day|date:'Y-m-d' }}" data-mirror="date">
+    {% if edit_form.non_field_errors %}
+    <div class="alert alert--error form-alert" role="alert">
+      {% for error in edit_form.non_field_errors %}<p class="alert__text">{{ error }}</p>{% endfor %}
+    </div>
+    {% endif %}
+    <fieldset class="booking-step">
+      <legend>Saat</legend>
+      <div id="slot-area" class="slot-area" aria-live="polite">
+        {% if slots %}
+        <div class="slot-grid" role="radiogroup" aria-label="Boş saatler">
+          {% for slot in slots %}
+          <label class="slot">
+            <input type="radio" name="time" value="{{ slot }}" class="slot__input"{% if slot == selected_time %} checked{% endif %}>
+            <span class="slot__label tabular">{{ slot }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="slot-area__message">{{ slot_message }}</p>
+        {% endif %}
+      </div>
+      {% for error in edit_form.service.errors %}<p class="field__error">{{ error }}</p>{% endfor %}
+      {% for error in edit_form.date.errors %}<p class="field__error">{{ error }}</p>{% endfor %}
+      {% for error in edit_form.time.errors %}<p class="field__error">{{ error }}</p>{% endfor %}
+      <p class="field__hint">Hizmet ve günü değiştirmediysen saat seçmeden yalnızca notu kaydedebilirsin.</p>
+    </fieldset>
+    {% include "partials/_form_field.html" with field=edit_form.shop_note %}
+    <button type="submit" class="btn btn--primary">Değişiklikleri kaydet</button>
+  </form>
+</section>
+{% endif %}
+
+{% if cancel_form %}
+<section class="panel form-panel detail-panel" aria-labelledby="cancel-title" id="iptal">
+  <h2 id="cancel-title">Randevuyu iptal et</h2>
+  <p>Müşteri sebebi Randevularım'da görür. İptal geri alınamaz; saat yeniden boşalır.</p>
+  <form method="post" action="{% url 'panel:appointment_cancel' appointment.pk %}" novalidate data-confirm="Bu randevuyu iptal etmek istediğine emin misin?">
+    {% csrf_token %}
+    {% include "partials/_form_field.html" with field=cancel_form.reason %}
+    <button type="submit" class="btn btn--danger">Randevuyu iptal et</button>
+  </form>
+</section>
+{% endif %}
+
+{% if not edit_form and not cancel_form %}
+<div class="panel form-panel detail-panel">
+  <p>{% if appointment.status == "cancelled" %}İptal edilen randevu değişmez.{% else %}Başlamış ya da geçmiş randevu düzenlenemez ve iptal edilemez.{% endif %}</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block panel_js %}
+{% if edit_form %}<script src="{% static 'js/appointment-edit.js' %}" defer></script>{% endif %}
+{% endblock %}

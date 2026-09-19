@@ -1,8 +1,5 @@
 """Müşteri tarafı randevu sayfaları ve müsaitlik API'si (PROJECT.md §8, §13 Faz 5)."""
 
-import datetime
-import re
-
 from django.contrib import messages
 from django.db.models import Q
 from django.http import Http404, JsonResponse
@@ -21,12 +18,6 @@ from .forms import BookingForm
 from .models import Appointment
 
 PAST_APPOINTMENTS_LIMIT = 50
-ISO_DATE_RE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
-
-
-def _int_or_none(value):
-    """Yalnızca makul uzunlukta ondalık rakamlardan oluşan metni tamsayıya çevirir; aksi hâlde `None`."""
-    return int(value) if value and value.isdecimal() and len(value) <= 9 else None
 
 
 # --- Müsaitlik API'si (herkese açık, salt okunur) --------------------------------------------------
@@ -40,16 +31,12 @@ def available_slots(request, slug):
     if shop is None or not is_publicly_visible(shop):
         return JsonResponse({"error": "Berber bulunamadı."}, status=404)
 
-    service_id = _int_or_none(request.GET.get("hizmet", ""))
+    service_id = services.parse_id(request.GET.get("hizmet", ""))
     service = shop.services.filter(pk=service_id, is_active=True).first() if service_id is not None else None
     if service is None:
         return JsonResponse({"error": "Geçerli bir hizmet seç."}, status=400)
 
-    raw_date = request.GET.get("tarih", "")
-    try:
-        day = datetime.date.fromisoformat(raw_date) if ISO_DATE_RE.fullmatch(raw_date) else None
-    except ValueError:
-        day = None
+    day = services.parse_iso_date(request.GET.get("tarih", ""))
     if day is None:
         return JsonResponse({"error": "Geçerli bir tarih seç (YYYY-AA-GG)."}, status=400)
 
@@ -94,7 +81,7 @@ def book(request, slug):
         selected = {"service": request.GET.get("hizmet", ""), "date": request.GET.get("tarih", "")}
 
     active_services = list(shop.services.filter(is_active=True))
-    selected_service_id = _int_or_none(selected.get("service", ""))
+    selected_service_id = services.parse_id(selected.get("service", ""))
     if selected_service_id is None and len(active_services) == 1:
         selected_service_id = active_services[0].pk  # tek hizmet varsa hazır seçili gelir
 
@@ -117,14 +104,13 @@ def book(request, slug):
 @customer_required
 def my_appointments(request):
     now = timezone.localtime()
-    ended = Q(date__lt=now.date()) | Q(date=now.date(), end_time__lte=now.time())
-    is_upcoming = Q(status=Appointment.Status.SCHEDULED) & ~ended
+    is_upcoming = Q(status=Appointment.Status.SCHEDULED) & ~services.ended_q(now)
     mine = Appointment.objects.filter(customer=request.user).select_related("shop")
 
     upcoming = list(mine.filter(is_upcoming).order_by("date", "start_time"))
     past = list(mine.exclude(is_upcoming).order_by("-date", "-start_time")[:PAST_APPOINTMENTS_LIMIT])
 
-    new_id = _int_or_none(request.GET.get("yeni", ""))
+    new_id = services.parse_id(request.GET.get("yeni", ""))
     for appointment in upcoming + past:
         appointment.display_status = appointment.get_display_status(now)
         appointment.can_cancel = services.can_cancel_by_customer(appointment, now)

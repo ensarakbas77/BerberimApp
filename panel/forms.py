@@ -4,10 +4,18 @@ from decimal import Decimal, InvalidOperation
 
 from django import forms
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.forms import BaseModelFormSet, modelformset_factory
 from django.utils import timezone
 
 from bookings.models import Appointment
+from bookings.services import (
+    ACTION_COMPLETE,
+    ACTION_NO_SHOW,
+    ACTION_UNMARK,
+    CANCEL_REASON_MAX_LENGTH,
+    NOTE_MAX_LENGTH,
+)
 from core.forms import StyledFormMixin
 from shops import services
 from shops.models import Service, Shop, ShopClosure, WorkingHours
@@ -196,3 +204,92 @@ class ShopClosureForm(StyledFormMixin, forms.ModelForm):
                 "Bu gün için planlı randevu var. Önce randevuları iptal et.", code="has_appointments"
             )
         return date
+
+
+# --- Randevu yönetimi (PROJECT.md §13 Faz 6) ------------------------------------------------------
+
+# Randevu listesindeki `durum` süzgeci → satırın görünen durumu (PROJECT.md §15).
+APPOINTMENT_FILTERS = {
+    "planlandi": Appointment.Status.SCHEDULED.value,
+    "bekleyen": "unmarked",
+    "tamamlandi": Appointment.Status.COMPLETED.value,
+    "gelmedi": Appointment.Status.NO_SHOW.value,
+    "iptal": Appointment.Status.CANCELLED.value,
+}
+APPOINTMENT_FILTER_CHOICES = [
+    ("", "Hepsi"),
+    ("planlandi", "Planlandı"),
+    ("bekleyen", "İşaretlenmeyi bekleyen"),
+    ("tamamlandi", "Tamamlandı"),
+    ("gelmedi", "Gelmedi"),
+    ("iptal", "İptal edildi"),
+]
+# İşlemden sonra dönülecek sayfa: sabit bir listeden seçilir, serbest adres alınmaz.
+RETURN_TARGETS = ("liste", "ozet", "detay")
+
+
+class ReturnTargetForm(forms.Form):
+    donus = forms.ChoiceField(choices=[(target, target) for target in RETURN_TARGETS], required=False)
+    durum = forms.ChoiceField(choices=APPOINTMENT_FILTER_CHOICES, required=False)
+
+
+class StatusActionForm(ReturnTargetForm):
+    action = forms.ChoiceField(
+        choices=[(ACTION_COMPLETE, "Tamamlandı"), (ACTION_NO_SHOW, "Gelmedi"), (ACTION_UNMARK, "İşareti kaldır")]
+    )
+
+
+class ShopCancelForm(StyledFormMixin, forms.Form):
+    reason = forms.CharField(
+        label="İptal sebebi",
+        max_length=CANCEL_REASON_MAX_LENGTH,
+        widget=forms.Textarea(attrs={"rows": 2}),
+        help_text="Müşteri bunu Randevularım'da görür. Ör. Berber hastalandı.",
+        error_messages={
+            "required": "İptal sebebini yaz. Müşteri bunu Randevularım'da görecek.",
+            "max_length": f"İptal sebebi en fazla {CANCEL_REASON_MAX_LENGTH} karakter olabilir.",
+        },
+    )
+
+
+class AppointmentEditForm(StyledFormMixin, forms.Form):
+    """Sahip düzenlemesi (PROJECT.md §7.6). Hizmet ve gün, gösterilen saat listesine ait gizli alanlardır;
+    saat boş bırakılırsa ve hizmet ile gün değişmediyse yalnızca dükkan notu kaydedilir."""
+
+    service = forms.ModelChoiceField(
+        queryset=Service.objects.none(),
+        empty_label=None,
+        error_messages={"required": "Hizmet seç.", "invalid_choice": "Geçersiz hizmet. Listeden bir hizmet seç."},
+    )
+    date = forms.DateField(
+        input_formats=["%Y-%m-%d"],
+        error_messages={"required": "Gün seç.", "invalid": "Geçersiz gün. Listeden bir gün seç."},
+    )
+    time = forms.TimeField(
+        required=False,
+        input_formats=["%H:%M"],
+        error_messages={"invalid": "Geçersiz saat. Listeden bir saat seç."},
+    )
+    shop_note = forms.CharField(
+        label="Dükkan notu (isteğe bağlı)",
+        required=False,
+        max_length=NOTE_MAX_LENGTH,
+        widget=forms.Textarea(attrs={"rows": 2}),
+        help_text="Yalnızca sen görürsün.",
+    )
+
+    def __init__(self, *args, shop, appointment, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.appointment = appointment
+        # Hizmeti sonradan pasifleşen randevuda mevcut hizmet de seçilebilsin (yalnızca not düzenlenebilir).
+        self.fields["service"].queryset = shop.services.filter(Q(is_active=True) | Q(pk=appointment.service_id))
+
+    def clean(self):
+        cleaned = super().clean()
+        service, day = cleaned.get("service"), cleaned.get("date")
+        if service is not None and day is not None and not cleaned.get("time") and "time" not in self.errors:
+            if service.pk == self.appointment.service_id and day == self.appointment.date:
+                cleaned["time"] = self.appointment.start_time
+            else:
+                self.add_error("time", "Yeni gün ya da hizmet için bir saat seç.")
+        return cleaned

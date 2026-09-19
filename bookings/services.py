@@ -4,11 +4,13 @@ Müsaitlik hesabı "meşgul aralıklar listesi" üzerinden yapılır; ileride pe
 """
 
 import datetime
+import re
+from collections import Counter
 from dataclasses import dataclass
 
 from django.conf import settings
 from django.db import IntegrityError, transaction
-from django.db.models import Prefetch, Q
+from django.db.models import Count, Prefetch, Q
 from django.utils import timezone
 from django.utils.formats import date_format
 
@@ -19,6 +21,9 @@ from shops.services import format_phone, is_publicly_visible
 from .models import Appointment
 
 NOTE_MAX_LENGTH = 200
+CANCEL_REASON_MAX_LENGTH = 200
+
+ISO_DATE_RE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 
 REASON_CLOSED = "closed"
 REASON_FULL = "full"
@@ -36,6 +41,24 @@ class BookingError(Exception):
 
 def _config(name):
     return settings.BERBERIM[name]
+
+
+def parse_id(value):
+    """Yalnızca makul uzunlukta ondalık rakamlardan oluşan metni tamsayıya çevirir; aksi hâlde `None`."""
+    return int(value) if value and value.isdecimal() and len(value) <= 9 else None
+
+
+def parse_iso_date(value):
+    """`YYYY-AA-GG` metnini tarihe çevirir; geçersizse `None`."""
+    try:
+        return datetime.date.fromisoformat(value) if ISO_DATE_RE.fullmatch(value or "") else None
+    except ValueError:
+        return None
+
+
+def ended_q(now):
+    """Bitişi geçmiş randevular (yerel tarih ve saatle)."""
+    return Q(date__lt=now.date()) | Q(date=now.date(), end_time__lte=now.time())
 
 
 # --- Müsaitlik (§7.2) -----------------------------------------------------------------------------
@@ -345,3 +368,268 @@ def cancel_by_customer(appointment, user, now=None):
         locked.status_changed_at = now
         locked.save(update_fields=["status", "cancelled_by", "status_changed_at", "updated_at"])
     return locked
+
+
+# --- Sahip işlemleri (§7.4, §7.6, §13 Faz 6) ------------------------------------------------------
+
+ACTION_COMPLETE = "complete"
+ACTION_NO_SHOW = "no_show"
+ACTION_UNMARK = "unmark"
+
+_ACTION_TARGETS = {
+    ACTION_COMPLETE: Appointment.Status.COMPLETED,
+    ACTION_NO_SHOW: Appointment.Status.NO_SHOW,
+    ACTION_UNMARK: Appointment.Status.SCHEDULED,
+}
+_MARKED_STATUSES = (Appointment.Status.COMPLETED, Appointment.Status.NO_SHOW)
+
+UNMARK_CONFLICT_MESSAGE = "Bu saatte başka bir planlı randevu var, işaret kaldırılamadı."
+SHOP_UNPUBLISHED_MESSAGE = "Dükkanın yayında değil. Randevuyu taşımak için önce dükkanı yayına al."
+SERVICE_INACTIVE_MESSAGE = "Bu hizmet pasif. Başka bir hizmet seç ya da hizmeti aktifleştir."
+
+
+def _mark_refusal(appointment, action, now):
+    """Durum işlemi kurallara uymuyorsa nedenini (Türkçe), uyuyorsa `None` döner (PROJECT.md §7.4, §15).
+
+    Denetim hedef bazlıdır; 7 günlük pencere yalnızca var olan işareti değiştirmeye (Tamamlandı ↔ Gelmedi,
+    İşareti kaldır) uygulanır, ilk işaretlemenin yaş sınırı yoktur.
+    """
+    status = appointment.status
+    if action not in _ACTION_TARGETS:
+        return "Geçersiz işlem."
+    if status == Appointment.Status.CANCELLED:
+        return "İptal edilen randevunun durumu değişmez."
+
+    if action == ACTION_UNMARK:
+        if status not in _MARKED_STATUSES:
+            return "Bu randevuda kaldırılacak işaret yok."
+    else:
+        target = _ACTION_TARGETS[action]
+        if status == target:
+            return f"Randevu zaten {target.label} olarak işaretli."
+        if action == ACTION_COMPLETE:
+            minutes = _config("COMPLETE_EARLIEST_BEFORE_MIN")
+            if now < appointment.starts_at - datetime.timedelta(minutes=minutes):
+                return f"Tamamlandı işareti başlangıçtan en fazla {minutes} dk önce konabilir."
+        elif now < appointment.starts_at:
+            return "Gelmedi işareti randevu saati gelmeden konamaz."
+
+    days = _config("MARK_CORRECTION_DAYS")
+    if status in _MARKED_STATUSES and now.date() > appointment.date + datetime.timedelta(days=days):
+        return f"Randevu üzerinden {days} günden fazla geçtiği için işaret değiştirilemez."
+    return None
+
+
+def _is_future_scheduled(appointment, now):
+    return appointment.status == Appointment.Status.SCHEDULED and appointment.starts_at > now
+
+
+def can_cancel_by_shop(appointment, now=None):
+    """Planlı ve başlangıcı geçmemiş (PROJECT.md §7.4)."""
+    return _is_future_scheduled(appointment, timezone.localtime(now))
+
+
+def can_edit_by_shop(appointment, now=None):
+    """Gelecekteki planlı randevu (PROJECT.md §7.6)."""
+    return _is_future_scheduled(appointment, timezone.localtime(now))
+
+
+@dataclass(frozen=True)
+class ShopActions:
+    """Bir randevuda sahibin o an yapabildiği işlemler (arayüz yalnızca bunları gösterir; sunucu yine denetler)."""
+
+    complete: bool
+    no_show: bool
+    unmark: bool
+    cancel: bool
+    edit: bool
+
+
+def get_shop_actions(appointment, now=None):
+    now = timezone.localtime(now)
+    return ShopActions(
+        complete=_mark_refusal(appointment, ACTION_COMPLETE, now) is None,
+        no_show=_mark_refusal(appointment, ACTION_NO_SHOW, now) is None,
+        unmark=_mark_refusal(appointment, ACTION_UNMARK, now) is None,
+        cancel=can_cancel_by_shop(appointment, now),
+        edit=can_edit_by_shop(appointment, now),
+    )
+
+
+def mark_by_shop(appointment, action, now=None):
+    """Tamamlandı, Gelmedi ya da İşareti kaldır; kurala uymazsa `BookingError` (PROJECT.md §7.4)."""
+    now = timezone.localtime(now)
+    if action not in _ACTION_TARGETS:
+        raise BookingError("Geçersiz işlem.")
+    try:
+        with transaction.atomic():
+            locked = Appointment.objects.select_for_update().get(pk=appointment.pk)
+            refusal = _mark_refusal(locked, action, now)
+            if refusal:
+                raise BookingError(refusal)
+            locked.status = _ACTION_TARGETS[action]
+            locked.status_changed_at = now
+            locked.save(update_fields=["status", "status_changed_at", "updated_at"])
+    except IntegrityError:
+        raise BookingError(UNMARK_CONFLICT_MESSAGE)
+    return locked
+
+
+def cancel_by_shop(appointment, reason, now=None):
+    """Sahip iptali: sebep zorunlu, başlangıç geçmemiş olmalı (PROJECT.md §7.4, §7.6)."""
+    now = timezone.localtime(now)
+    reason = (reason or "").strip()
+    if not reason:
+        raise BookingError("İptal sebebini yaz. Müşteri bunu Randevularım'da görecek.")
+    if len(reason) > CANCEL_REASON_MAX_LENGTH:
+        raise BookingError(f"İptal sebebi en fazla {CANCEL_REASON_MAX_LENGTH} karakter olabilir.")
+    with transaction.atomic():
+        locked = Appointment.objects.select_for_update().get(pk=appointment.pk)
+        if locked.status != Appointment.Status.SCHEDULED:
+            raise BookingError("Bu randevu artık iptal edilemez.")
+        if not can_cancel_by_shop(locked, now):
+            raise BookingError(
+                "Başlamış bir randevu iptal edilemez. Müşteri geldiyse Tamamlandı, gelmediyse Gelmedi olarak işaretle."
+            )
+        locked.status = Appointment.Status.CANCELLED
+        locked.cancelled_by = Appointment.CancelledBy.SHOP
+        locked.cancel_reason = reason
+        locked.status_changed_at = now
+        locked.save(update_fields=["status", "cancelled_by", "cancel_reason", "status_changed_at", "updated_at"])
+    return locked
+
+
+def get_edit_slot_availability(shop, service, day, appointment, now=None):
+    """Sahip düzenlemesi için boş saatler; randevunun kendi saati çakışma sayılmaz (PROJECT.md §7.6, §15).
+
+    Saat listesi kurulamıyorsa (dükkan yayında değil ya da hizmet pasif) nedeni `BookingError` ile söyler.
+    """
+    if not is_publicly_visible(shop):
+        raise BookingError(SHOP_UNPUBLISHED_MESSAGE)
+    if not service.is_active:
+        raise BookingError(SERVICE_INACTIVE_MESSAGE)
+    return get_slot_availability(shop, service, day, now, exclude_appointment=appointment)
+
+
+def update_by_shop(appointment, service, day, start_time, shop_note="", now=None):
+    """Sahip düzenlemesi: gün, saat, hizmet ve dükkan notu (PROJECT.md §7.6, §15).
+
+    Yalnızca dükkan notu değişiyorsa müsaitlik denetlenmez. Gün, saat ya da hizmet değişiyorsa yeni saat
+    `get_available_slots(..., exclude_appointment=randevu)` ile doğrulanır; randevunun kendi saati çakışma sayılmaz.
+    """
+    now = timezone.localtime(now)
+    shop_note = (shop_note or "").strip()
+    if len(shop_note) > NOTE_MAX_LENGTH:
+        raise BookingError(f"Not en fazla {NOTE_MAX_LENGTH} karakter olabilir.")
+    start_time = start_time.replace(second=0, microsecond=0)
+
+    try:
+        with transaction.atomic():
+            locked_shop = Shop.objects.select_for_update().get(pk=appointment.shop_id)
+            locked = Appointment.objects.select_for_update().get(pk=appointment.pk)
+            if not can_edit_by_shop(locked, now):
+                raise BookingError("Yalnızca gelecekteki planlı randevu düzenlenebilir.")
+
+            changed_fields = ["shop_note", "updated_at"]
+            unchanged = service.pk == locked.service_id and day == locked.date and start_time == locked.start_time
+            if not unchanged:
+                if not is_publicly_visible(locked_shop):
+                    raise BookingError(SHOP_UNPUBLISHED_MESSAGE)
+                new_service = Service.objects.filter(pk=service.pk, shop=locked_shop, is_active=True).first()
+                if new_service is None:
+                    raise BookingError(SERVICE_GONE_MESSAGE)
+
+                start = datetime.datetime.combine(day, start_time)
+                end = start + datetime.timedelta(minutes=new_service.duration_minutes)
+                customer_overlap = Appointment.objects.filter(
+                    customer_id=locked.customer_id,
+                    status=Appointment.Status.SCHEDULED,
+                    date=day,
+                    start_time__lt=end.time(),
+                    end_time__gt=start_time,
+                ).exclude(pk=locked.pk)
+                if customer_overlap.exists():
+                    raise BookingError(OVERLAP_MESSAGE)
+                if start_time not in get_available_slots(locked_shop, new_service, day, now, exclude_appointment=locked):
+                    raise BookingError(SLOT_TAKEN_MESSAGE)
+
+                if new_service.pk != locked.service_id:
+                    locked.service = new_service
+                    locked.service_name = new_service.name
+                    locked.price = new_service.price
+                    changed_fields += ["service", "service_name", "price"]
+                locked.date = day
+                locked.start_time = start_time
+                locked.end_time = end.time()
+                changed_fields += ["date", "start_time", "end_time"]
+
+            locked.shop_note = shop_note
+            locked.save(update_fields=changed_fields)
+    except IntegrityError:
+        raise BookingError(SLOT_TAKEN_MESSAGE)
+    return locked
+
+
+# --- Sahip listesi -------------------------------------------------------------------------------
+
+
+def count_recent_no_shows(customer_ids, today):
+    """`{müşteri_id: son NO_SHOW_WINDOW_DAYS gündeki Gelmedi sayısı}`; Gelmedi'si olmayan müşteri sözlükte yoktur.
+
+    Sayı müşterinin tüm dükkanlardaki Gelmedi'lerini kapsar (§7.7 ile aynı sayı). Pencere: randevu tarihi ≥
+    bugün − NO_SHOW_WINDOW_DAYS gün (PROJECT.md §15). Tek sorgu.
+    """
+    ids = set(customer_ids)
+    if not ids:
+        return {}
+    since = today - datetime.timedelta(days=_config("NO_SHOW_WINDOW_DAYS"))
+    rows = (
+        Appointment.objects.filter(customer_id__in=ids, status=Appointment.Status.NO_SHOW, date__gte=since)
+        .order_by()
+        .values("customer_id")
+        .annotate(total=Count("pk"))
+    )
+    return {row["customer_id"]: row["total"] for row in rows}
+
+
+def unmarked_appointments(shop, now=None):
+    """Bitişi geçmiş ama işaretlenmemiş planlı randevular (türetilmiş durum, PROJECT.md §7.4)."""
+    now = timezone.localtime(now)
+    return Appointment.objects.filter(shop=shop, status=Appointment.Status.SCHEDULED).filter(ended_q(now))
+
+
+def prepare_shop_appointments(appointments, now=None):
+    """Sahip listesi için satırları hazırlar: görünen durum, izin verilen işlemler ve müşterinin Gelmedi sayısı.
+
+    Sorgu sayısı satır sayısından bağımsızdır (`appointments` içinde `customer` önceden yüklenmelidir).
+    """
+    now = timezone.localtime(now)
+    rows = list(appointments)
+    no_shows = count_recent_no_shows({row.customer_id for row in rows}, now.date())
+    window_days = _config("NO_SHOW_WINDOW_DAYS")
+    for row in rows:
+        row.display_status = row.get_display_status(now)
+        row.actions = get_shop_actions(row, now)
+        row.recent_no_shows = no_shows.get(row.customer_id, 0)
+        row.no_show_window_days = window_days
+    return rows
+
+
+@dataclass(frozen=True)
+class DaySummary:
+    """Sayaçlar satırdaki rozetle aynı görünen duruma göre sayılır; iptaller sayaçta yoktur (PROJECT.md §15)."""
+
+    scheduled: int
+    completed: int
+    no_show: int
+    unmarked: int
+
+
+def summarize_day(rows):
+    counts = Counter(row.display_status for row in rows)
+    return DaySummary(
+        scheduled=counts[Appointment.Status.SCHEDULED.value],
+        completed=counts[Appointment.Status.COMPLETED.value],
+        no_show=counts[Appointment.Status.NO_SHOW.value],
+        unmarked=counts["unmarked"],
+    )

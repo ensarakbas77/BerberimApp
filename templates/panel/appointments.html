@@ -1,0 +1,55 @@
+{% extends "panel/base_panel.html" %}
+
+{% block title %}Randevular | Berberim{% endblock %}
+
+{% block panel_content %}
+<h1>Randevular</h1>
+
+{% if pending_mode %}
+<p class="lead">Bitişi geçmiş ama işaretlenmemiş randevular, en yeni başta. Müşteri geldiyse Tamamlandı, gelmediyse Gelmedi olarak işaretle.</p>
+{% else %}
+<nav class="day-nav" aria-label="Gün gezintisi">
+  <div class="day-nav__buttons">
+    {% if prev_url %}<a class="btn btn--secondary" href="{{ prev_url }}" rel="prev" aria-label="Önceki gün">‹</a>{% endif %}
+    <a class="btn btn--secondary" href="{{ today_url }}"{% if is_today %} aria-current="date"{% endif %}>Bugün</a>
+    {% if next_url %}<a class="btn btn--secondary" href="{{ next_url }}" rel="next" aria-label="Sonraki gün">›</a>{% endif %}
+  </div>
+  <form method="get" class="day-nav__picker">
+    <label class="visually-hidden" for="day-picker">Tarih seç</label>
+    <input type="date" id="day-picker" name="tarih" value="{{ day|date:'Y-m-d' }}" class="input">
+    {% if status_filter %}<input type="hidden" name="durum" value="{{ status_filter }}">{% endif %}
+    <button type="submit" class="btn btn--secondary">Göster</button>
+  </form>
+</nav>
+<h2 class="day-title"><time datetime="{{ day|date:'Y-m-d' }}">{{ day|date:"j F Y l" }}</time></h2>
+{% include "panel/_summary.html" %}
+{% endif %}
+
+<nav class="status-filter" aria-label="Durum süzgeci">
+  <ul>
+    {% for item in filters %}
+    <li><a href="{{ item.url }}"{% if item.active %} aria-current="true"{% endif %}>{{ item.label }}</a></li>
+    {% endfor %}
+  </ul>
+</nav>
+
+{% if rows %}
+<ul class="appointment-list">
+  {% for appointment in rows %}
+  {% include "panel/_appointment_row.html" with return_to="liste" show_date=pending_mode %}
+  {% endfor %}
+</ul>
+{% elif pending_mode %}
+<div class="panel">
+  <p>İşaretlenmeyi bekleyen randevu yok. Geçmiş randevuların hepsi işaretli.</p>
+</div>
+{% elif has_day_rows %}
+<div class="panel">
+  <p>Bu süzgece uyan randevu yok. Süzgeci "Hepsi" olarak değiştir.</p>
+</div>
+{% else %}
+<div class="panel">
+  <p>Bu gün için randevu yok. Çalışma saatlerin açık olduğu sürece müşteriler boş saatlerini görebilir.</p>
+</div>
+{% endif %}
+{% endblock %}

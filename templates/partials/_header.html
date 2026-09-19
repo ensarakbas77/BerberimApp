@@ -19,7 +19,10 @@
           {% if user.role == "owner" %}
             <li><a href="{% url 'panel:home' %}">Panel</a></li>
             {# Dükkanı olmayan sahipte `user.shop` boş sayılır (ObjectDoesNotExist şablonda sessizdir). #}
-            {% if user.shop %}<li><a href="{{ user.shop.get_absolute_url }}">Dükkanımı gör</a></li>{% endif %}
+            {% if user.shop %}
+            <li><a href="{% url 'panel:appointments' %}">Randevular</a></li>
+            <li><a href="{{ user.shop.get_absolute_url }}">Dükkanımı gör</a></li>
+            {% endif %}
             <li>{% include "partials/_logout_form.html" %}</li>
           {% else %}
             <li><a href="{% url 'shops:list' %}">Berberler</a></li>

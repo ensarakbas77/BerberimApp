@@ -1,0 +1,34 @@
+{% load berberim %}{% comment %}Kullanım: {% include "panel/_appointment_row.html" with appointment=appointment return_to="liste" show_date=False %}
+Sahip listesindeki randevu satırı. `appointment`, `bookings.services.prepare_shop_appointments` ile hazırlanmış olmalı
+(`display_status`, `actions`, `recent_no_shows`). Yalnızca kurala uyan işlem butonları gösterilir; sunucu yine denetler.
+Müşterinin e-postası hiçbir yerde yok; telefon yalnızca dükkan sahibine görünür (PROJECT.md §5).{% endcomment %}
+<li class="shop-appointment" id="randevu-{{ appointment.pk }}">
+  <div class="shop-appointment__when tabular">
+    {% if show_date %}<span class="shop-appointment__date">{{ appointment.date|date:"j F l" }}</span>{% endif %}
+    <span class="shop-appointment__time">{{ appointment.start_time|time:"H:i" }}–{{ appointment.end_time|time:"H:i" }}</span>
+  </div>
+  <div class="shop-appointment__body">
+    <div class="shop-appointment__head">
+      <span class="shop-appointment__customer">@{{ appointment.customer.username }}</span>
+      {% include "partials/_status_badge.html" with status=appointment.display_status %}
+    </div>
+    <p class="shop-appointment__meta">
+      <span>{{ appointment.service_name }}</span>
+      <span class="tabular">{{ appointment.duration_minutes }} dk</span>
+      {% if appointment.price is not None %}<span class="tabular">{{ appointment.price|price }}</span>{% endif %}
+    </p>
+    {% if appointment.customer.phone %}<p class="shop-appointment__meta"><a href="tel:{{ appointment.customer.phone|tel_href }}">{{ appointment.customer.phone|phone }}</a></p>{% endif %}
+    {% if appointment.customer_note %}<p class="shop-appointment__note">Müşteri notu: {{ appointment.customer_note }}</p>{% endif %}
+    {% if appointment.shop_note %}<p class="shop-appointment__note">Senin notun: {{ appointment.shop_note }}</p>{% endif %}
+    {% if appointment.recent_no_shows %}<p class="shop-appointment__warn">Son {{ appointment.no_show_window_days }} günde {{ appointment.recent_no_shows }} randevuya gelmedi.</p>{% endif %}
+    {% if appointment.status == "cancelled" %}
+    <p class="shop-appointment__note">{% if appointment.cancelled_by == "shop" %}Sen iptal ettin{% if appointment.cancel_reason %}: {{ appointment.cancel_reason }}{% endif %}{% else %}Müşteri iptal etti.{% endif %}</p>
+    {% endif %}
+    <div class="shop-appointment__actions">
+      {% if appointment.actions.complete %}{% include "panel/_status_button.html" with action="complete" label="Tamamlandı" %}{% endif %}
+      {% if appointment.actions.no_show %}{% include "panel/_status_button.html" with action="no_show" label="Gelmedi" %}{% endif %}
+      {% if appointment.actions.unmark %}{% include "panel/_status_button.html" with action="unmark" label="İşareti kaldır" %}{% endif %}
+      <a class="btn btn--secondary" href="{% url 'panel:appointment_detail' appointment.pk %}">{% if appointment.actions.edit %}Düzenle / İptal{% else %}Ayrıntı{% endif %}<span class="visually-hidden">: @{{ appointment.customer.username }}, {{ appointment.start_time|time:"H:i" }}</span></a>
+    </div>
+  </div>
+</li>

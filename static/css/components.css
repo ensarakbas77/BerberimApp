@@ -272,7 +272,8 @@ html:not(.js) .js-only {
 }
 
 /* Panel (Faz 3): alt menü, özet, kontrol listesi */
-.panel-nav ul {
+.panel-nav ul,
+.status-filter ul {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -281,7 +282,8 @@ html:not(.js) .js-only {
   list-style: none;
 }
 
-.panel-nav a {
+.panel-nav a,
+.status-filter a {
   display: inline-flex;
   align-items: center;
   min-height: var(--tap);
@@ -294,11 +296,13 @@ html:not(.js) .js-only {
   text-decoration: none;
 }
 
-.panel-nav a:hover {
+.panel-nav a:hover,
+.status-filter a:hover {
   border-color: var(--ink-2);
 }
 
-.panel-nav a[aria-current="page"] {
+.panel-nav a[aria-current="page"],
+.status-filter a[aria-current="true"] {
   border-color: var(--cobalt);
   background: var(--cobalt-tint);
   color: var(--cobalt);
@@ -1168,4 +1172,167 @@ select.input {
   margin: 0 0 16px;
   color: var(--mint-ink);
   font-weight: 600;
+}
+
+/* Randevu yönetimi (Faz 6): gün gezintisi, sayaçlar, sahip satırları, düzenleme */
+.day-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-bottom: 8px;
+}
+
+.day-nav__buttons,
+.day-nav__picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.day-nav__buttons .btn {
+  min-width: var(--tap);
+  padding: 0 14px;
+}
+
+.day-nav__picker .input {
+  width: auto;
+}
+
+.day-title {
+  margin: 8px 0 12px;
+  font-size: var(--fs-22);
+}
+
+.dashboard-section {
+  margin-bottom: 24px;
+}
+
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+}
+
+.section-head__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 640px) {
+  .stat-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+
+.stat__num {
+  font-size: var(--fs-28);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.stat__label {
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+
+.shop-appointment {
+  display: grid;
+  gap: 8px 20px;
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+  scroll-margin-top: 16px;
+}
+
+@media (min-width: 640px) {
+  .shop-appointment {
+    grid-template-columns: 9.5rem minmax(0, 1fr);
+  }
+}
+
+.shop-appointment__when {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--fs-18);
+  font-weight: 700;
+}
+
+.shop-appointment__date {
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  font-weight: 500;
+}
+
+.shop-appointment__body {
+  min-width: 0;
+}
+
+.shop-appointment__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.shop-appointment__customer {
+  font-size: var(--fs-18);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.shop-appointment__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin: 4px 0 0;
+}
+
+.shop-appointment__note {
+  margin: 6px 0 0;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+
+.shop-appointment__warn {
+  margin: 6px 0 0;
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.shop-appointment__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.detail-panel {
+  margin-bottom: 20px;
+}
+
+.slot-picker {
+  margin-bottom: 20px;
 }

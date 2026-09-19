@@ -1,0 +1,8 @@
+{% comment %}Kullanım: {% include "panel/_summary.html" with summary=summary %}
+Günün sayaçları: satırdaki rozetle aynı görünen duruma göre sayılır; iptaller sayaçta yoktur (PROJECT.md §15).{% endcomment %}
+<ul class="stat-row" aria-label="Günün özeti">
+  <li class="stat"><span class="stat__num tabular">{{ summary.scheduled }}</span><span class="stat__label">Planlandı</span></li>
+  <li class="stat"><span class="stat__num tabular">{{ summary.completed }}</span><span class="stat__label">Tamamlandı</span></li>
+  <li class="stat"><span class="stat__num tabular">{{ summary.no_show }}</span><span class="stat__label">Gelmedi</span></li>
+  <li class="stat"><span class="stat__num tabular">{{ summary.unmarked }}</span><span class="stat__label">İşaretlenmeyi bekleyen</span></li>
+</ul>

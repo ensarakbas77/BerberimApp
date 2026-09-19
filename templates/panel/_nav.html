@@ -2,6 +2,7 @@
 <nav class="panel-nav" aria-label="Panel menüsü">
   <ul>
     <li><a href="{% url 'panel:home' %}"{% if current == "home" %} aria-current="page"{% endif %}>Özet</a></li>
+    <li><a href="{% url 'panel:appointments' %}"{% if current == "appointments" or current == "appointment_detail" %} aria-current="page"{% endif %}>Randevular</a></li>
     <li><a href="{% url 'panel:shop' %}"{% if current == "shop" %} aria-current="page"{% endif %}>Dükkan</a></li>
     <li><a href="{% url 'panel:hours' %}"{% if current == "hours" %} aria-current="page"{% endif %}>Çalışma saatleri</a></li>
     <li><a href="{% url 'panel:services' %}"{% if current == "services" or current == "service_create" or current == "service_edit" %} aria-current="page"{% endif %}>Hizmetler</a></li>

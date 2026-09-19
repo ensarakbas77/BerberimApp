@@ -114,6 +114,62 @@ Canlı ortam: uygulama Vercel'de (fonksiyon bölgesi `fra1`), veritabanı Supaba
    alter default privileges for role postgres in schema public revoke all on sequences from anon, authenticated, service_role;
    alter default privileges for role postgres in schema public revoke all on functions from anon, authenticated, service_role;
    ```
+6. **Satır düzeyinde güvenlik (RLS):** Tüm `public` tablolarında RLS açık kalır, politika eklenmez (Data API kullanılmadığı için API rolleri hiçbir satırı göremez). Django tabloların sahibi `postgres` rolüyle bağlandığı ve o rolde `BYPASSRLS` olduğu için etkilenmez. İki SQL'i *SQL Editor*'de bir kez çalıştır (bu projede Supabase MCP ile uygulandı):
+
+   ```sql
+   -- Mevcut tablolar: RLS'si kapalı olan her public tablosunda aç.
+   do $$
+   declare
+     t record;
+   begin
+     for t in
+       select c.oid::regclass as tbl
+       from pg_class c
+       join pg_namespace n on n.oid = c.relnamespace
+       where n.nspname = 'public' and c.relkind in ('r', 'p') and not c.relrowsecurity
+     loop
+       execute format('alter table %s enable row level security', t.tbl);
+     end loop;
+   end $$;
+   ```
+
+   ```sql
+   -- Yeni tablolar: public'te CREATE TABLE olunca RLS'yi kendisi açar. Hata olursa yutulur, migrate'i bozmaz.
+   create or replace function public.rls_auto_enable()
+   returns event_trigger
+   language plpgsql
+   security definer
+   set search_path = pg_catalog
+   as $$
+   declare
+     cmd record;
+   begin
+     for cmd in
+       select * from pg_event_trigger_ddl_commands()
+       where command_tag in ('CREATE TABLE', 'CREATE TABLE AS', 'SELECT INTO')
+         and object_type in ('table', 'partitioned table')
+     loop
+       if cmd.schema_name = 'public' then
+         begin
+           execute format('alter table if exists %s enable row level security', cmd.object_identity);
+         exception when others then
+           raise log 'rls_auto_enable: % icin RLS acilamadi: %', cmd.object_identity, sqlerrm;
+         end;
+       end if;
+     end loop;
+   end;
+   $$;
+
+   revoke execute on function public.rls_auto_enable() from public, anon, authenticated, service_role;
+
+   drop event trigger if exists ensure_rls;
+   create event trigger ensure_rls
+     on ddl_command_end
+     when tag in ('CREATE TABLE', 'CREATE TABLE AS', 'SELECT INTO')
+     execute function public.rls_auto_enable();
+   ```
+
+   Kontrol: Supabase *Advisors → Security* sayfasında "RLS Enabled No Policy" (INFO) bilgileri beklenen durumdur; "RLS Disabled" (critical) uyarısı çıkmamalıdır.
 
 ### 2. İlk migrate ve yönetici hesabı (bir kez, lokalden)
 
