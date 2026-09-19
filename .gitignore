@@ -1,0 +1,22 @@
+# Gizli bilgiler
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+*.log
+
+# Editörler ve işletim sistemi
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

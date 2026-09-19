@@ -1,0 +1,29 @@
+{% load static %}<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Berberim{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Karamürsel'deki berberlerin boş saatlerini gör, randevunu hemen al.{% endblock %}">
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap">
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}">
+  <script>document.documentElement.classList.add("js");</script>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <a class="skip-link" href="#content">İçeriğe geç</a>
+  {% include "partials/_header.html" %}
+  {% include "partials/_messages.html" %}
+  <main id="content" class="container">
+    {% block content %}{% endblock %}
+  </main>
+  {% include "partials/_footer.html" %}
+  <script src="{% static 'js/app.js' %}" defer></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

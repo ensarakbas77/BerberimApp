@@ -1,0 +1,244 @@
+/* Bileşenler: buton, input, çip, rozet, uyarı kutusu, panel — PROJECT.md §9.2, §9.4 */
+
+/* Butonlar: birincil = kobalt dolgu, ikincil = mürekkep çerçeve, tehlikeli = kırmızı metin */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  min-height: var(--tap);
+  padding: 0 20px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--t-fast), border-color var(--t-fast), filter var(--t-fast);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn--primary {
+  background: var(--cobalt);
+  color: #fff;
+}
+
+.btn--primary:hover {
+  filter: brightness(0.9);
+}
+
+.btn--secondary {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.btn--secondary:hover {
+  background: var(--neutral-tint);
+}
+
+.btn--danger {
+  color: var(--danger);
+}
+
+.btn--danger:hover {
+  background: var(--danger-tint);
+}
+
+.btn--block {
+  display: flex;
+  width: 100%;
+}
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  background: var(--neutral-tint);
+  border-color: transparent;
+  color: var(--ink-2);
+  cursor: not-allowed;
+  filter: none;
+  transform: none;
+}
+
+/* Formlar: etiket inputun üstünde ve her zaman görünür, hata alanın altında */
+.field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.field__label {
+  font-weight: 600;
+}
+
+.field__hint {
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+
+.field__error {
+  margin: 0;
+  color: var(--danger);
+  font-size: var(--fs-14);
+}
+
+.input {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 10px 12px;
+  border: 1px solid var(--ink-2);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  transition: border-color var(--t-fast);
+}
+
+textarea.input {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.input::placeholder {
+  color: var(--ink-2);
+}
+
+.input:disabled {
+  background: var(--neutral-tint);
+  color: var(--ink-2);
+}
+
+.field--error .input,
+.input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+/* Çip */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-chip);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: 500;
+}
+
+.chip--selected {
+  border-color: var(--cobalt);
+  background: var(--cobalt-tint);
+  color: var(--cobalt);
+}
+
+/* Rozetler: her zaman metin içerir, renk tek başına anlam taşımaz (§9.2) */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-chip);
+  font-size: var(--fs-14);
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.badge--scheduled { background: var(--cobalt-tint); color: var(--cobalt); }
+.badge--completed { background: var(--success-tint); color: var(--success); }
+.badge--no-show   { background: var(--danger-tint); color: var(--danger); }
+.badge--cancelled { background: var(--neutral-tint); color: var(--ink-2); }
+.badge--unmarked  { background: var(--lemon-35); color: var(--ink); }
+.badge--open      { background: var(--mint); color: var(--mint-ink); }
+.badge--closed    { background: var(--neutral-tint); color: var(--ink-2); }
+
+/* Uyarı kutusu (Django messages ile aynı sınıflar) */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.alert__text {
+  flex: 1;
+  margin: 0;
+  padding-block: 8px 0;
+}
+
+.alert__close {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap);
+  height: var(--tap);
+  margin: -8px -12px -8px 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: inherit;
+  font-size: var(--fs-22);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.alert__close:hover {
+  background: rgb(20 33 61 / 0.08);
+}
+
+.alert--info,
+.alert--debug {
+  border-color: var(--mint-ink);
+  background: var(--mint);
+  color: var(--mint-ink);
+}
+
+.alert--success {
+  border-color: var(--success);
+  background: var(--success-tint);
+  color: var(--success);
+}
+
+.alert--warning {
+  border-color: var(--lemon);
+  background: var(--lemon-35);
+  color: var(--ink);
+}
+
+.alert--error {
+  border-color: var(--danger);
+  background: var(--danger-tint);
+  color: var(--danger);
+}
+
+/* Panel: gölge yerine kenarlık */
+.panel {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+}
+
+/* Sayfa bölümleri */
+.hero {
+  padding-block: 16px 8px;
+}
+
+.lead {
+  max-width: 60ch;
+  color: var(--ink-2);
+  font-size: var(--fs-18);
+}

@@ -1,0 +1,10 @@
+{% if messages %}
+<div class="messages container">
+  {% for message in messages %}
+  <div class="alert alert--{{ message.level_tag }}" role="status">
+    <p class="alert__text">{{ message }}</p>
+    <button type="button" class="alert__close" data-dismiss aria-label="Mesajı kapat">&times;</button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
