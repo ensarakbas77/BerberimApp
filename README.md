@@ -166,6 +166,8 @@ unset DATABASE_URL
 - `/yonetim/` girişi çalışıyor (e-posta ve şifre).
 - Olmayan bir adres (ör. `/deneme`) Berberim'in 404 sayfasını gösteriyor.
 
+**Herkese açık adres:** Vercel varsayılan olarak otomatik üretilen `*.vercel.app` adreslerini (deployment adresleri) kimlik doğrulamasıyla korur; bu adreslere giren ziyaretçi Vercel girişine yönlenir. Projeye *Settings → Domains* sayfasından kendi `<ad>.vercel.app` alan adını eklersen o adres herkese açık olur. Alternatif olarak *Settings → Deployment Protection* sayfasından korumayı kapatabilirsin.
+
 ### 5. Her model değişikliğinde
 
 1. Lokalde migration üret ve testleri geçir.
