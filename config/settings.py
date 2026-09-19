@@ -130,6 +130,14 @@ STORAGES = {
 if not DEBUG and "test" not in sys.argv:
     STORAGES["staticfiles"]["BACKEND"] = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+if not DEBUG:
+    # Vercel HTTPS'i uçta sonlandırır; Django isteğin güvenli olduğunu bu başlıktan anlar.
+    # HTTP→HTTPS yönlendirmesini ve HSTS başlığını Vercel CDN'i kendisi ekler; bu yüzden
+    # SECURE_SSL_REDIRECT ve HSTS burada ayarlanmaz (README, "check --deploy" bölümü).
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # İş kuralı sabitleri (PROJECT.md §7.1)
