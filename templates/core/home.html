@@ -1,47 +1,53 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
-<section class="hero">
-  <h1>Karamürsel'de tıraş vakti.</h1>
-  <p class="lead">Berberlerin boş saatlerini gör, randevunu hemen al.</p>
-  <form method="get" action="{% url 'shops:list' %}" class="hero-search" role="search">
-    <div class="field">
-      <label class="field__label" for="home-q">Berber ara</label>
-      <input type="search" name="q" id="home-q" class="input" maxlength="80" autocomplete="off" enterkeyhint="search">
-    </div>
-    <button type="submit" class="btn btn--primary">Ara</button>
-  </form>
-</section>
+<div class="home-grid">
+  <section class="home-intro" aria-labelledby="home-title">
+    <h1 id="home-title" class="home-title">Sıra var mı?</h1>
+    <p class="lead">Karamürsel berberlerinin boş saatleri burada. Birini seç, randevunu al.</p>
+    <form method="get" action="{% url 'shops:list' %}" class="search" role="search">
+      <label class="field__label" for="home-q">Berber adı ara</label>
+      <div class="search__row">
+        <input type="search" name="q" id="home-q" class="input" maxlength="80" autocomplete="off" enterkeyhint="search">
+        <button type="submit" class="btn btn--primary search__btn"><svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#ara"></use></svg><span class="visually-hidden">Ara</span></button>
+      </div>
+    </form>
+  </section>
 
-<section class="home-section" aria-labelledby="open-now-title">
-  <h2 id="open-now-title">Şu an açık</h2>
-  {% if open_listings %}
-  <ul class="shop-list">
-    {% for listing in open_listings %}
-    {% include "partials/_shop_row.html" %}
-    {% endfor %}
-  </ul>
-  <p class="home-section__more"><a href="{% url 'shops:list' %}">Tüm berberleri gör</a></p>
-  {% elif has_shops %}
-  <div class="panel">
-    <p>Şu an açık berber yok. Çalışma saatlerini görmek için tüm berberlere bak.</p>
-    <a class="btn btn--secondary" href="{% url 'shops:list' %}">Tüm berberleri gör</a>
-  </div>
-  {% else %}
-  <div class="panel">
-    <p>Henüz yayında berber yok. Berberler dükkanlarını ekledikçe burada görünecek.</p>
-  </div>
-  {% endif %}
-</section>
+  <section class="home-open" aria-labelledby="open-now-title">
+    <h2 id="open-now-title">Şu an açık</h2>
+    {% if open_listings %}
+    <ul class="shop-list">
+      {% for listing in open_listings %}
+      {% include "partials/_shop_row.html" %}
+      {% endfor %}
+    </ul>
+    <p class="home-open__more"><a class="btn btn--secondary" href="{% url 'shops:list' %}">Tüm berberler</a></p>
+    {% elif has_shops %}
+    <div class="empty">
+      <p class="empty__title">Şu an açık berber yok.</p>
+      <a class="btn btn--secondary" href="{% url 'shops:list' %}">Yarının boş saatlerine bak</a>
+    </div>
+    {% else %}
+    <div class="empty">
+      <p class="empty__title">Henüz yayında berber yok.</p>
+      <p>Berberler dükkanlarını ekledikçe burada görünecek.</p>
+    </div>
+    {% endif %}
+  </section>
+</div>
 
 {% if not user.is_authenticated %}
-<section class="panel owner-cta" aria-labelledby="owner-cta-title">
-  <h2 id="owner-cta-title">Berber misin?</h2>
-  <p>Dükkanını ekle, randevularını tek ekrandan takip et.</p>
+<section class="cta" aria-labelledby="owner-cta-title">
+  <div>
+    <h2 id="owner-cta-title">Berber misin?</h2>
+    <p>Dükkanını ekle, randevularını tek ekrandan yönet.</p>
+  </div>
   <a class="btn btn--primary" href="{% url 'accounts:register_owner' %}">Dükkan hesabı aç</a>
 </section>
 {% elif user.role == "owner" %}
-<section class="panel owner-cta" aria-labelledby="owner-cta-title">
+<section class="panel owner-panel" aria-labelledby="owner-cta-title">
   <h2 id="owner-cta-title">Dükkanın</h2>
   <p>Bilgilerini, saatlerini ve hizmetlerini panelden yönet.</p>
   <a class="btn btn--secondary" href="{% url 'panel:home' %}">Panele git</a>

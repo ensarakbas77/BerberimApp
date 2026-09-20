@@ -1,27 +1,429 @@
 /* Sayfaya özgü düzenlemeler (FRONTEND-TASARIM.md §14) */
 
-/* ===== GEÇİŞ KATMANI =====
-   Henüz yeni tasarıma taşınmamış sayfaların eski işaretlemesi için; yeni tokenlarla yeniden renklendirildi.
-   Her grup, ilgili sayfa yeni işaretlemeye geçince silinir (Adım 2–4); Adım 5'te katman tamamen kalkar. */
-
-/* @gecis:start Hesap sayfaları: dar tek sütun, sola hizalı */
-.auth {
-  max-width: 480px;
+/* ===== Ana sayfa (§10.1) ===== */
+.home-grid {
+  display: grid;
+  gap: var(--s-6);
 }
 
-.auth__links {
-  margin: 0 0 4px;
+.home-grid > * {
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .home-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: var(--s-7);
+  }
+}
+
+.home-title {
+  margin-bottom: var(--s-3);
+  font-size: clamp(2.25rem, 9vw, 4rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.home-intro .lead {
+  margin-bottom: var(--s-5);
+}
+
+.search__row {
+  display: flex;
+  gap: var(--s-2);
+}
+
+.search__row .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.search__btn {
+  flex: none;
+  min-width: 56px;
+  padding: 0 var(--s-4);
+}
+
+.home-open h2 {
+  margin-top: 0;
+}
+
+.home-open__more {
+  margin: var(--s-4) 0 0;
+}
+
+.cta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  margin-top: var(--s-7);
+  padding: var(--s-5);
+  border-radius: var(--r-lg);
+  background: var(--green-tint);
+}
+
+.cta h2,
+.cta p {
+  margin: 0;
+}
+
+.cta h2 {
+  margin-bottom: var(--s-1);
+}
+
+@media (min-width: 640px) {
+  .cta {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.owner-panel {
+  margin-top: var(--s-6);
+}
+
+/* ===== Berberler listesi (§10.2) ===== */
+.filters {
+  display: grid;
+  gap: var(--s-3);
+  margin: var(--s-4) 0 var(--s-5);
+}
+
+.filters .field {
+  margin: 0;
+}
+
+.filters__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.chip--toggle:has(input:checked) {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #fff;
+}
+
+.chip--toggle:has(input:focus-visible) {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.filters select.input {
+  width: auto;
+  min-height: var(--tap);
+  padding: 0 40px 0 var(--s-4);
+  border-radius: var(--r-pill);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.result-count {
+  margin: 0 0 var(--s-3);
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+/* ===== Dükkan detayı (§10.3) ===== */
+.back-link {
+  margin: 0 0 var(--s-2);
+}
+
+.back-link a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  min-height: var(--tap);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.back-link a:hover {
+  text-decoration: underline;
+}
+
+.shop-detail {
+  display: grid;
+  gap: var(--s-4);
+}
+
+.shop-detail > * {
+  min-width: 0;
+}
+
+.shop-head h1 {
+  margin-bottom: var(--s-2);
+}
+
+.shop-head__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+  margin: 0;
   color: var(--ink-2);
 }
 
-/* @gecis:end */
-
-/* @gecis:start Sayfa bölümleri */
-.hero {
-  padding-block: 16px 8px;
+.booking-box__label {
+  margin: 0 0 var(--s-2);
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 600;
 }
 
-/* @gecis:end */
+.booking-box__slot {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin: 0 0 var(--s-4);
+}
+
+.booking-box__slot:last-child {
+  margin-bottom: 0;
+}
+
+.first-slot--lg {
+  min-height: 44px;
+  padding: 0 20px;
+  font-size: 22px;
+}
+
+.booking-box__when {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+.booking-box__none {
+  margin: 0 0 var(--s-4);
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+/* Mobilde "Randevu al" alt eylem çubuğunda; kutudaki kopyası yalnızca masaüstünde görünür */
+@media (max-width: 1023px) {
+  .booking-box__cta {
+    display: none;
+  }
+
+  .booking-box__slot,
+  .booking-box__none {
+    margin-bottom: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .shop-detail {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-rows: auto 1fr;
+    grid-template-areas: "head aside" "body aside";
+    column-gap: var(--s-7);
+    align-items: start;
+  }
+
+  .shop-head {
+    grid-area: head;
+  }
+
+  .shop-aside {
+    grid-area: aside;
+    position: sticky;
+    top: calc(var(--header-h) + var(--s-4));
+  }
+
+  .shop-body {
+    grid-area: body;
+  }
+}
+
+.detail-section {
+  margin-bottom: var(--s-6);
+}
+
+.detail-section h2 {
+  margin-bottom: var(--s-3);
+}
+
+.detail-subtitle {
+  margin: var(--s-4) 0 var(--s-2);
+  font-size: 16px;
+}
+
+.list-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+
+.list-rows__item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border-top: 1px solid var(--line);
+}
+
+.list-rows__item:first-child {
+  border-top: 0;
+}
+
+.list-rows__name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.list-rows__price {
+  min-width: 4.5rem;
+  text-align: right;
+}
+
+.closure-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.closure-list li {
+  padding: var(--s-1) 0;
+}
+
+.closure-list__note {
+  margin-left: var(--s-2);
+  color: var(--ink-2);
+}
+
+.hours-table__label {
+  margin-left: var(--s-2);
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hours-table__closed {
+  color: var(--ink-2);
+}
+
+.detail-address {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  margin: var(--s-3) 0;
+}
+
+.detail-address .icon {
+  margin-top: 2px;
+}
+
+.detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin: 0 0 var(--s-3);
+}
+
+.detail-phone {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.shop-description {
+  max-width: 68ch;
+  overflow-wrap: anywhere;
+}
+
+.action-bar__slot {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.action-bar__label {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+/* ===== Hesap sayfaları (§10.5) ===== */
+.auth-layout {
+  display: grid;
+  gap: var(--s-5);
+}
+
+.auth-layout > * {
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .auth-layout {
+    grid-template-columns: 420px minmax(0, 1fr);
+    gap: var(--s-7);
+    align-items: start;
+  }
+}
+
+.auth {
+  max-width: 420px;
+}
+
+.auth .panel {
+  margin-bottom: var(--s-4);
+}
+
+.auth__links {
+  margin: 0 0 var(--s-2);
+  color: var(--ink-2);
+}
+
+.auth-aside {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .auth-aside {
+    display: flex;
+    align-items: flex-end;
+    min-height: 320px;
+    padding: var(--s-6);
+    border-radius: var(--r-lg);
+    background: var(--green-tint);
+    color: var(--green-ink);
+  }
+
+  .auth-aside p {
+    max-width: 18ch;
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+}
+
+/* ===== Hata sayfaları (§10.10) ===== */
+.error-page {
+  max-width: 680px;
+  padding-block: var(--s-6);
+}
+
+.error-page__title {
+  font-size: clamp(2rem, 8vw, 3.25rem);
+  line-height: 1.1;
+}
+
+.error-page .lead {
+  margin-bottom: var(--s-5);
+}
+
+/* ===== GEÇİŞ KATMANI =====
+   Henüz yeni tasarıma taşınmamış sayfaların eski işaretlemesi için; yeni tokenlarla yeniden renklendirildi.
+   Her grup, ilgili sayfa yeni işaretlemeye geçince silinir (Adım 2–4); Adım 5'te katman tamamen kalkar. */
 
 /* @gecis:start Panel (Faz 3): alt menü, özet, kontrol listesi */
 .panel-nav ul,
@@ -218,208 +620,6 @@
 
 /* @gecis:end */
 
-/* @gecis:start Vitrin (Faz 4): liste satırları, süzgeç çubuğu, ana sayfa, dükkan detayı */
-.filter-bar {
-  display: grid;
-  gap: 0 16px;
-  margin-bottom: 24px;
-  padding: 20px 20px 8px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  background: var(--surface);
-}
-
-.filter-bar__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-@media (min-width: 768px) {
-  .filter-bar {
-      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
-      align-items: end;
-    }
-  .filter-bar__actions {
-      grid-column: 1 / -1;
-    }
-}
-
-.result-count {
-  margin: 0 0 8px;
-  color: var(--ink-2);
-}
-
-/* @gecis:end */
-
-/* @gecis:start Ana sayfa */
-.hero-search {
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  max-width: 560px;
-  margin-top: 16px;
-}
-
-.home-section {
-  margin-top: 32px;
-}
-
-.home-section h2 {
-  font-size: 1.375rem;
-}
-
-.home-section__more {
-  margin: -8px 0 0;
-}
-
-.owner-cta {
-  max-width: 560px;
-  margin-top: 32px;
-}
-
-/* @gecis:end */
-
-/* @gecis:start Dükkan detayı */
-.shop-detail {
-  display: grid;
-  gap: 24px;
-}
-
-@media (min-width: 1024px) {
-  .shop-detail {
-      grid-template-columns: minmax(0, 1fr) 340px;
-      align-items: start;
-      gap: 32px;
-    }
-  .shop-detail__aside {
-      position: sticky;
-      top: 16px;
-    }
-}
-
-.shop-head h1 {
-  margin-bottom: 8px;
-  overflow-wrap: anywhere;
-}
-
-.shop-head__meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
-  margin: 0 0 16px;
-  color: var(--ink-2);
-}
-
-.detail-section {
-  margin-top: 32px;
-}
-
-.detail-section h2 {
-  font-size: 1.375rem;
-}
-
-.detail-subtitle {
-  margin: 24px 0 8px;
-  font-size: 1.125rem;
-}
-
-/* @gecis:end */
-
-/* @gecis:start Haritanın altındaki "Yol tarifi al" haritaya yapışmasın */
-.service-list {
-  margin: 0;
-  padding: 0 20px;
-  list-style: none;
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  background: var(--surface);
-}
-
-.service-list__item {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  align-items: baseline;
-  gap: 4px 20px;
-  padding: 14px 0;
-  border-top: 1px solid var(--line);
-}
-
-.service-list__item:first-child {
-  border-top: 0;
-}
-
-.service-list__name {
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-.closure-list {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.closure-list li {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px 12px;
-}
-
-.closure-list__note {
-  color: var(--ink-2);
-}
-
-.booking-box__status {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
-  margin: 0 0 16px;
-}
-
-.booking-box__phone {
-  margin: 16px 0 0;
-}
-
-.booking-box__phone a {
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-/* @gecis:end */
-
-/* @gecis:start Mobilde altta sabit "Randevu al" çubuğu: sayfadaki tek gölgeli öğe (§9.4) */
-.book-bar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 40;
-  padding: 12px var(--s-4) calc(12px + env(safe-area-inset-bottom));
-  border-top: 1px solid var(--line);
-  background: var(--surface);
-  box-shadow: 0 -2px 10px rgb(20 33 61 / 0.1);
-}
-
-@media (min-width: 1024px) {
-  .book-bar {
-      display: none;
-    }
-}
-
-@media (max-width: 1023.98px) {
-  .booking-box__cta {
-      display: none;
-    }
-}
-
-/* @gecis:end */
-
 /* @gecis:start Randevu alma ve Randevularım (Faz 5) */
 .back-link {
   margin: 0 0 8px;
@@ -504,21 +704,6 @@
 .appointment__info {
   margin: 8px 0 0;
   color: var(--ink-2);
-}
-
-/* @gecis:end */
-
-/* @gecis:start "İlk boş saat" */
-.shop-row__slot {
-  margin: 0;
-  color: var(--green-ink);
-  font-weight: 600;
-}
-
-.booking-box__slot {
-  margin: 0 0 16px;
-  color: var(--green-ink);
-  font-weight: 600;
 }
 
 /* @gecis:end */

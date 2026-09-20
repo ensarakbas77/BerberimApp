@@ -121,7 +121,7 @@ class ShopListTests(TestCase):
     def test_filters_work_together(self):
         self.make_shops()
         response = self.client.get(LIST_URL, {"q": "berber", "mahalle": "carsi", "acik": "1"})
-        self.assertContains(response, "Aramana uyan berber bulunamadı.")
+        self.assertContains(response, "Bu aramaya uyan berber yok.")
         response = self.client.get(LIST_URL, {"q": "kuafor", "mahalle": "carsi", "acik": "1"})
         self.assertContains(response, "1 berber")
         self.assertContains(response, "Çarşı Kuaför")
@@ -136,14 +136,14 @@ class ShopListTests(TestCase):
     def test_no_match_message_and_clear_link(self):
         self.make_shops()
         response = self.client.get(LIST_URL, {"q": "olmayan ad"})
-        self.assertContains(response, "Aramana uyan berber bulunamadı.")
-        self.assertContains(response, "Süzgeçleri temizle")
+        self.assertContains(response, "Bu aramaya uyan berber yok.")
+        self.assertContains(response, "Filtreleri temizle")
         self.assertNotContains(response, "0 berber")
 
     def test_clear_link_only_appears_when_a_filter_is_active(self):
         self.make_shops()
-        self.assertNotContains(self.client.get(LIST_URL), "Süzgeçleri temizle")
-        self.assertContains(self.client.get(LIST_URL, {"acik": "1"}), "Süzgeçleri temizle")
+        self.assertNotContains(self.client.get(LIST_URL), "Filtreleri temizle")
+        self.assertContains(self.client.get(LIST_URL, {"acik": "1"}), "Filtreleri temizle")
 
     def test_too_long_search_is_reported_and_does_not_break_the_page(self):
         self.make_shops()
@@ -193,7 +193,7 @@ class ShopDetailTests(TestCase):
         make_user()
         User.objects.create_superuser(email="yonetici@example.com", username="yonetici", password=PASSWORD)
 
-        self.assertContains(self.client.get(url), "Sayfa bulunamadı.", status_code=404)  # ziyaretçi
+        self.assertContains(self.client.get(url), "Bu sayfa burada değil.", status_code=404)  # ziyaretçi
         for username in ["musteri", "sahip", "yonetici"]:  # müşteri, başka sahip, site yöneticisi
             with self.subTest(username=username):
                 client = self.client_class()
@@ -239,7 +239,7 @@ class ShopDetailTests(TestCase):
         add_service(self.shop, "Pasif hizmet", 15, Decimal("99"), is_active=False)
         response = self.client.get(self.url)
         content = response.content.decode()
-        first, second = 'service-list__name">Saç kesimi<', 'service-list__name">Sakal<'
+        first, second = 'list-rows__name">Saç kesimi<', 'list-rows__name">Sakal<'
         self.assertLess(content.index(first), content.index(second))
         self.assertContains(response, "30 dk")
         self.assertContains(response, "20 dk")
@@ -273,20 +273,20 @@ class ShopDetailTests(TestCase):
         return content.count('badge badge--open">Açık<'), content.count('badge badge--closed">Kapalı<')
 
     def test_open_and_closed_badge_follow_the_time(self):
-        self.assertEqual(self.badge_counts(self.client.get(self.url)), (2, 0))  # başlık ve kutu
+        self.assertEqual(self.badge_counts(self.client.get(self.url)), (1, 0))
         with mock.patch("django.utils.timezone.now", return_value=at(SUNDAY, 10)):
-            self.assertEqual(self.badge_counts(self.client.get(self.url)), (0, 2))
+            self.assertEqual(self.badge_counts(self.client.get(self.url)), (0, 1))
         with mock.patch("django.utils.timezone.now", return_value=at(MONDAY, 21)):
-            self.assertEqual(self.badge_counts(self.client.get(self.url)), (0, 2))
+            self.assertEqual(self.badge_counts(self.client.get(self.url)), (0, 1))
 
     def test_break_and_closure_day_show_closed(self):
         monday = self.shop.hours.get(weekday=0)
         monday.break_start, monday.break_end = T(12), T(13)
         monday.save()
         with mock.patch("django.utils.timezone.now", return_value=at(MONDAY, 12, 30)):
-            self.assertEqual(self.badge_counts(self.client.get(self.url)), (0, 2))
+            self.assertEqual(self.badge_counts(self.client.get(self.url)), (0, 1))
         ShopClosure.objects.create(shop=self.shop, date=MONDAY, note="Bayram")
-        self.assertEqual(self.badge_counts(self.client.get(self.url)), (0, 2))
+        self.assertEqual(self.badge_counts(self.client.get(self.url)), (0, 1))
 
     # --- haftalık tablo ve kapalı günler ---
     def test_weekly_table_lists_every_day_and_highlights_today(self):
@@ -300,7 +300,7 @@ class ShopDetailTests(TestCase):
         self.assertContains(response, "Mola 12:00–13:00")
         self.assertContains(response, 'aria-current="date"', count=1)
         self.assertRegex(response.content.decode(), r'aria-current="date">\s*<th scope="row">\s*Pazartesi')
-        self.assertContains(response, '<span class="chip chip--selected">Bugün</span>', html=True)
+        self.assertContains(response, '<span class="hours-table__label">bugün</span>', html=True)
 
     def test_closure_today_shows_the_todays_row_as_closed_with_its_note(self):
         ShopClosure.objects.create(shop=self.shop, date=MONDAY, note="Bayram")
@@ -335,7 +335,7 @@ class ShopDetailTests(TestCase):
         )
         self.assertContains(response, "Yol tarifi al")
         self.assertContains(response, "leaflet@1.9.4/dist/leaflet.js")
-        self.assertContains(response, "js/shop-map.js")
+        self.assertContains(response, "js/map.js")
 
     def test_without_location_only_the_address_is_shown(self):
         response = self.client.get(self.url)
@@ -348,14 +348,14 @@ class ShopDetailTests(TestCase):
         response = self.client.get(self.url)
         login_href = 'href="/hesap/giris/?next=/berber/usta-kemal-berber/randevu/"'
         self.assertContains(response, login_href, count=2)  # kutu ve mobil çubuk
-        self.assertContains(response, "book-bar")
+        self.assertContains(response, "action-bar")
 
     def test_customer_goes_straight_to_the_booking_page(self):
         make_user()
         login(self.client, "musteri")
         response = self.client.get(self.url)
         self.assertContains(response, 'href="/berber/usta-kemal-berber/randevu/"', count=2)  # kutu ve mobil çubuk
-        self.assertContains(response, "book-bar")
+        self.assertContains(response, "action-bar")
         self.assertNotContains(response, "/hesap/giris/?next=")
         self.assertNotContains(response, "disabled")
 
@@ -367,7 +367,7 @@ class ShopDetailTests(TestCase):
                 login(client, username)
                 response = client.get(self.url)
                 self.assertNotContains(response, "Randevu al")
-                self.assertNotContains(response, "book-bar")
+                self.assertNotContains(response, "action-bar")
 
     # --- meta ---
     def test_title_and_description_are_per_page(self):

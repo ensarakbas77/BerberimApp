@@ -101,7 +101,7 @@
       element.hidden = true;
     });
     form.addEventListener("change", function (event) {
-      if (event.target.matches("[data-autosubmit]")) {
+      if (event.target.matches("select, input[type=checkbox], input[type=radio]")) {
         if (form.requestSubmit) {
           form.requestSubmit();
         } else {

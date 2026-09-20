@@ -314,7 +314,7 @@ main {
     display: block;
   }
 
-  .site-header__login {
+  .site-header .site-header__login {
     display: none;
   }
 }

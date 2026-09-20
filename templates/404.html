@@ -3,9 +3,9 @@
 {% block title %}Sayfa bulunamadı | Berberim{% endblock %}
 
 {% block content %}
-<section class="hero">
-  <h1>Sayfa bulunamadı.</h1>
-  <p class="lead">Aradığın sayfa taşınmış ya da hiç olmamış olabilir. Adresi kontrol et ya da ana sayfaya dön.</p>
+<section class="error-page">
+  <h1 class="error-page__title">Bu sayfa burada değil.</h1>
+  <p class="lead">Aradığın sayfa taşınmış ya da hiç olmamış olabilir.</p>
   <a class="btn btn--primary" href="{% url 'core:home' %}">Ana sayfaya dön</a>
 </section>
 {% endblock %}

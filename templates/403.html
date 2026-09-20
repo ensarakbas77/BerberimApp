@@ -3,9 +3,9 @@
 {% block title %}Erişim yok | Berberim{% endblock %}
 
 {% block content %}
-<section class="hero">
-  <h1>Bu sayfaya erişemezsin.</h1>
-  <p class="lead">Bu sayfayı görmek için gereken yetkin yok. Ana sayfaya dönüp devam edebilirsin.</p>
+<section class="error-page">
+  <h1 class="error-page__title">Bu sayfaya erişimin yok.</h1>
+  <p class="lead">Bu sayfayı görmek için gereken yetkin yok.</p>
   <a class="btn btn--primary" href="{% url 'core:home' %}">Ana sayfaya dön</a>
 </section>
 {% endblock %}

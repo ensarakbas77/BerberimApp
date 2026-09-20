@@ -1,26 +1,32 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Giriş yap | Berberim{% endblock %}
 {% block meta_description %}Berberim hesabına giriş yap.{% endblock %}
 
 {% block content %}
+<div class="auth-layout">
 <section class="auth">
   <h1>Giriş yap</h1>
+  <p class="lead">Randevularını görmek ve yeni randevu almak için giriş yap.</p>
   <div class="panel">
     <form method="post" novalidate>
       {% csrf_token %}
       {% if form.non_field_errors %}
       <div class="alert alert--error form-alert" role="alert">
+        <svg class="icon alert__icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#hata"></use></svg>
         <p class="alert__text">{{ form.non_field_errors.0 }}</p>
       </div>
       {% endif %}
       {% include "partials/_form_field.html" with field=form.username %}
       {% include "partials/_form_field.html" with field=form.password %}
       {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
-      <button type="submit" class="btn btn--primary btn--block">Giriş yap</button>
+      <button type="submit" class="btn btn--primary btn--block" data-loading-text="Giriş yapılıyor…">Giriş yap</button>
     </form>
   </div>
   <p class="auth__links">Hesabın yok mu? <a href="{% url 'accounts:register' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Kayıt ol</a></p>
   <p class="auth__links">Berber misin? <a href="{% url 'accounts:register_owner' %}">Dükkan hesabı aç</a></p>
 </section>
+<aside class="auth-aside"><p>Boş saatleri gör, randevunu saniyeler içinde al.</p></aside>
+</div>
 {% endblock %}

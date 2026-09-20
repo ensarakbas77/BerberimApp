@@ -34,8 +34,8 @@ class HomeTests(TestCase):
     def test_home_renders_headline_and_lead(self):
         response = self.client.get(reverse("core:home"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Karamürsel'de tıraş vakti.")
-        self.assertContains(response, "Berberlerin boş saatlerini gör, randevunu hemen al.")
+        self.assertContains(response, "Sıra var mı?")
+        self.assertContains(response, "Karamürsel berberlerinin boş saatleri burada. Birini seç, randevunu al.")
 
     def test_page_shell(self):
         response = self.client.get("/")
@@ -51,13 +51,13 @@ class HomeTests(TestCase):
 
     def test_500_page_is_standalone_and_turkish(self):
         html = render_to_string("500.html")
-        self.assertIn("Bir sorun oluştu.", html)
+        self.assertIn("Bir şeyler ters gitti.", html)
         self.assertIn('<html lang="tr">', html)
         self.assertNotIn("{%", html)
 
     def test_404_page_is_turkish(self):
         response = self.client.get("/olmayan-sayfa/")
-        self.assertContains(response, "Sayfa bulunamadı.", status_code=404)
+        self.assertContains(response, "Bu sayfa burada değil.", status_code=404)
 
     def test_messages_are_rendered_with_status_role(self):
         html = render_to_string(

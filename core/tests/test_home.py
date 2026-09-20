@@ -19,11 +19,11 @@ class HomeShowcaseTests(TestCase):
 
     def test_headline_lead_and_search_form(self):
         response = self.client.get("/")
-        self.assertContains(response, "Karamürsel'de tıraş vakti.")
-        self.assertContains(response, "Berberlerin boş saatlerini gör, randevunu hemen al.")
+        self.assertContains(response, "Sıra var mı?")
+        self.assertContains(response, "Karamürsel berberlerinin boş saatleri burada. Birini seç, randevunu al.")
         self.assertContains(response, '<form method="get" action="/berberler/"')
         self.assertContains(response, 'name="q"')
-        self.assertContains(response, '<label class="field__label" for="home-q">Berber ara</label>', html=True)
+        self.assertContains(response, '<label class="field__label" for="home-q">Berber adı ara</label>', html=True)
 
     def test_lists_open_shops_in_name_order(self):
         make_published_shop(username="z", name="Zeytin Berber", neighborhood="Merkez")
@@ -34,7 +34,7 @@ class HomeShowcaseTests(TestCase):
         content = response.content.decode()
         self.assertLess(content.index("Çarşı Berberi"), content.index("Zeytin Berber"))
         self.assertContains(response, "Bugün 09:00–20:00")
-        self.assertContains(response, 'href="/berberler/">Tüm berberleri gör</a>')
+        self.assertContains(response, 'href="/berberler/">Tüm berberler</a>')
 
     def test_shows_at_most_six_shops(self):
         for index, letter in enumerate("abcdefgh"):
@@ -89,7 +89,7 @@ class HomeOwnerCallTests(TestCase):
     def test_visitor_sees_the_call_for_owners(self):
         response = self.client.get("/")
         self.assertContains(response, "Berber misin?")
-        self.assertContains(response, "Dükkanını ekle, randevularını tek ekrandan takip et.")
+        self.assertContains(response, "Dükkanını ekle, randevularını tek ekrandan yönet.")
         self.assertContains(response, 'href="/hesap/dukkan-kayit/">Dükkan hesabı aç</a>')
 
     def test_customer_sees_no_call(self):

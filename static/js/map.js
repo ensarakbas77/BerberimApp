@@ -1,8 +1,48 @@
-/* Konum seçimi (PROJECT.md §13 Faz 3): haritaya tıklayınca işaretçi konur, gizli enlem/boylam alanları dolar.
-   Leaflet yüklenemezse ya da JS yoksa form yine kaydedilir; mevcut konum gizli alanlarda korunur. */
+/* Harita (Leaflet 1.9, OpenStreetMap): dükkan detayında salt okunur görüntüleme, panelde konum seçme.
+   Leaflet yüklenemezse ya da JS yoksa harita gizli kalır; adres ve "Yol tarifi al" ile "Ara" bağlantıları sayfada durur.
+   Görüntüleme kancaları: #shop-map (data-lat, data-lng, data-name). Seçme kancaları: #location-map, #location-status,
+   #id_latitude, #id_longitude, [data-location-help], [data-location-clear]. */
 (function () {
   "use strict";
 
+  if (typeof L === "undefined") {
+    var missing = document.getElementById("location-status");
+    if (missing && document.getElementById("location-map")) {
+      missing.textContent = "Harita yüklenemedi. Konumu boş bırakabilirsin.";
+    }
+    return;
+  }
+
+  // Varsayılan merkez: Karamürsel.
+  var DEFAULT_CENTER = [40.69, 29.61];
+
+  // Özel işaretçi: 20 px limon daire, 3 px koyu kenarlık (FRONTEND-TASARIM.md §8.13)
+  var pin = L.divIcon({ className: "map-pin", iconSize: [20, 20], iconAnchor: [10, 10] });
+
+  function createMap(container, center, zoom) {
+    var map = L.map(container, { scrollWheelZoom: false }).setView(center, zoom);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> katkıda bulunanlar',
+      // Django'nun varsayılan "same-origin" politikası Referer'ı keser; OSM karo kullanım politikası ister.
+      referrerPolicy: "strict-origin-when-cross-origin"
+    }).addTo(map);
+    return map;
+  }
+
+  // --- Dükkan detayı: salt okunur ---------------------------------------------------------------
+  var view = document.getElementById("shop-map");
+  if (view) {
+    var lat = parseFloat(view.getAttribute("data-lat"));
+    var lng = parseFloat(view.getAttribute("data-lng"));
+    if (isFinite(lat) && isFinite(lng)) {
+      view.hidden = false;
+      var viewMap = createMap(view, [lat, lng], 17);
+      L.marker([lat, lng], { icon: pin, title: view.getAttribute("data-name") || "", keyboard: false }).addTo(viewMap);
+    }
+  }
+
+  // --- Panel: konum seçme -----------------------------------------------------------------------
   var container = document.getElementById("location-map");
   var status = document.getElementById("location-status");
   var latInput = document.getElementById("id_latitude");
@@ -11,22 +51,14 @@
     return;
   }
 
-  if (typeof L === "undefined") {
-    status.textContent = "Harita yüklenemedi. Konumu boş bırakabilirsin.";
-    return;
-  }
-
   var help = document.querySelector("[data-location-help]");
   var clearButton = document.querySelector("[data-location-clear]");
-
-  // Varsayılan merkez: Karamürsel.
-  var DEFAULT_CENTER = [40.69, 29.61];
   var marker = null;
 
   function readPoint() {
-    var lat = parseFloat(latInput.value);
-    var lng = parseFloat(lngInput.value);
-    return isFinite(lat) && isFinite(lng) ? [lat, lng] : null;
+    var savedLat = parseFloat(latInput.value);
+    var savedLng = parseFloat(lngInput.value);
+    return isFinite(savedLat) && isFinite(savedLng) ? [savedLat, savedLng] : null;
   }
 
   var saved = readPoint();
@@ -36,14 +68,7 @@
     help.hidden = false;
   }
 
-  var map = L.map(container, { scrollWheelZoom: false }).setView(saved || DEFAULT_CENTER, saved ? 17 : 14);
-
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> katkıda bulunanlar',
-    // Django'nun varsayılan "same-origin" politikası Referer'ı keser; OSM karo kullanım politikası ister.
-    referrerPolicy: "strict-origin-when-cross-origin"
-  }).addTo(map);
+  var map = createMap(container, saved || DEFAULT_CENTER, saved ? 17 : 14);
 
   function announce(point) {
     if (point) {
@@ -57,19 +82,17 @@
   }
 
   function setPoint(latlng) {
-    var lat = latlng.lat;
-    var lng = latlng.lng;
-    latInput.value = lat.toFixed(6);
-    lngInput.value = lng.toFixed(6);
+    latInput.value = latlng.lat.toFixed(6);
+    lngInput.value = latlng.lng.toFixed(6);
     if (marker) {
       marker.setLatLng(latlng);
     } else {
-      marker = L.marker(latlng, { draggable: true, keyboard: false }).addTo(map);
+      marker = L.marker(latlng, { icon: pin, draggable: true, keyboard: false }).addTo(map);
       marker.on("dragend", function () {
         setPoint(marker.getLatLng());
       });
     }
-    announce([lat, lng]);
+    announce([latlng.lat, latlng.lng]);
   }
 
   function clearPoint() {

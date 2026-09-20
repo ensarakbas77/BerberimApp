@@ -1,4 +1,5 @@
-{% comment %}Haftalık çalışma saatleri tablosu; `weekly_hours` bağlamda olmalı. Bugünün satırı vurgulanır ve "Bugün" yazar.{% endcomment %}
+{% comment %}Haftalık çalışma saatleri tablosu (FRONTEND-TASARIM.md §8.11); `weekly_hours` bağlamda olmalı.
+Bugünün satırı solda çubukla, kalın yazıyla ve "bugün" ifadesiyle vurgulanır; kapalı günler "Kapalı" yazar; mola altında küçük metin.{% endcomment %}
 <table class="hours-table">
   <caption class="visually-hidden">Haftalık çalışma saatleri</caption>
   <tbody>
@@ -6,14 +7,14 @@
     <tr{% if day.is_today %} class="hours-table__today" aria-current="date"{% endif %}>
       <th scope="row">
         {{ day.name }}
-        {% if day.is_today %}<span class="chip chip--selected">Bugün</span>{% endif %}
+        {% if day.is_today %}<span class="hours-table__label">bugün</span>{% endif %}
       </th>
       <td class="tabular">
         {% if day.is_open %}
         <span>{{ day.open_time|time:"H:i" }}–{{ day.close_time|time:"H:i" }}</span>
         {% if day.break_start %}<span class="hours-table__note">Mola {{ day.break_start|time:"H:i" }}–{{ day.break_end|time:"H:i" }}</span>{% endif %}
         {% else %}
-        <span>Kapalı</span>
+        <span class="hours-table__closed">Kapalı</span>
         {% if day.note %}<span class="hours-table__note">{{ day.note }}</span>{% endif %}
         {% endif %}
       </td>

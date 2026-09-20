@@ -1,15 +1,22 @@
 {% comment %}Kullanım: <ul class="shop-list">{% for listing in listings %}{% include "partials/_shop_row.html" %}{% endfor %}</ul>
-Geniş liste satırı (PROJECT.md §9.4): ad, mahalle, bugünün saatleri, açık/kapalı rozeti. Satırın tamamı ada verilen bağlantıyla tıklanır.{% endcomment %}
+Dükkan satırı (FRONTEND-TASARIM.md §8.5): ad, mahalle, bugünün saatleri, açık/kapalı rozeti ve "sıradaki boş saat" hapı.
+Satırın tamamı ada verilen tek bağlantıyla tıklanır (iç içe bağlantı yok). Bugün boş saat yoksa (ve dükkan şu an açıksa) hap yerine "Bugün dolu" yazar.{% endcomment %}
 <li class="shop-row">
   <div class="shop-row__main">
     <h3 class="shop-row__name"><a href="{{ listing.shop.get_absolute_url }}">{{ listing.shop.name }}</a></h3>
     {% if listing.shop.neighborhood %}<p class="shop-row__meta">{{ listing.shop.neighborhood }}</p>{% endif %}
     <p class="shop-row__hours tabular">{{ listing.today.label }}</p>
-    {% if listing.first_slot %}<p class="shop-row__slot tabular">İlk boş saat: {{ listing.first_slot|time:"H:i" }}</p>{% endif %}
   </div>
-  {% if listing.is_open %}
-  <span class="badge badge--open">Açık</span>
-  {% else %}
-  <span class="badge badge--closed">Kapalı</span>
-  {% endif %}
+  <div class="shop-row__side">
+    {% if listing.is_open %}
+    <span class="badge badge--open">Açık</span>
+    {% else %}
+    <span class="badge badge--closed">Kapalı</span>
+    {% endif %}
+    {% if listing.first_slot %}
+    <span class="first-slot tabular"><span class="visually-hidden">Sıradaki boş saat: </span>{{ listing.first_slot|time:"H:i" }}</span>
+    {% elif listing.is_open %}
+    <span class="first-slot first-slot--none">Bugün dolu</span>
+    {% endif %}
+  </div>
 </li>
