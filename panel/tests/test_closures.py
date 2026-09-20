@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from shops.models import ShopClosure
+from shops.models import Shop, ShopClosure
 
 from .helpers import days_from_today, login_owner, make_shop
 
@@ -51,6 +51,16 @@ class ClosureTests(TestCase):
         ShopClosure.objects.create(shop=other, date=date)
         self.add(date)
         self.assertEqual(ShopClosure.objects.filter(date=date).count(), 2)
+
+    def test_the_shop_row_is_locked_while_a_closure_is_added(self):
+        from unittest import mock
+
+        from django.db.models.query import QuerySet
+
+        original = QuerySet.select_for_update
+        with mock.patch.object(QuerySet, "select_for_update", autospec=True, side_effect=original) as locked:
+            self.add(days_from_today(3))
+        self.assertEqual([call.args[0].model for call in locked.call_args_list], [Shop])
 
     def test_invalid_date_is_rejected(self):
         for value in ["", "yarın", "2026-13-40"]:

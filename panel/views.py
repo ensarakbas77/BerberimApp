@@ -4,7 +4,7 @@ import datetime
 from urllib.parse import urlencode
 
 from django.contrib import messages
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -223,14 +223,20 @@ def closure_list(request):
     today = timezone.localtime().date()
     if request.method == "POST":
         form = ShopClosureForm(request.POST, shop=shop)
-        if form.is_valid():
-            try:
-                form.save()
-            except IntegrityError:
-                # Aynı gün aynı anda iki kez eklendi.
-                messages.error(request, "Bu gün zaten kapalı günler listende.")
-            else:
-                messages.success(request, "Kapalı gün eklendi.")
+        try:
+            # Dükkan satırı randevu oluşturmadaki kilitle aynıdır: "o gün planlı randevu yok" denetimi (form) ile kayıt
+            # arasına yeni bir randevu giremez.
+            with transaction.atomic():
+                Shop.objects.select_for_update().get(pk=shop.pk)
+                is_valid = form.is_valid()
+                if is_valid:
+                    form.save()
+        except IntegrityError:
+            # Aynı gün aynı anda iki kez eklendi.
+            messages.error(request, "Bu gün zaten kapalı günler listende.")
+            return redirect("panel:closures")
+        if is_valid:
+            messages.success(request, "Kapalı gün eklendi.")
             return redirect("panel:closures")
     else:
         form = ShopClosureForm(shop=shop)

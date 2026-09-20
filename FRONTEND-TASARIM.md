@@ -3,7 +3,7 @@
 > **Bu dosya yalnızca arayüzü yeniler.** Backend (modeller, view'lar, URL'ler, servisler, API) olduğu gibi kalır.
 > Bu dosya PROJECT.md'deki **§9 Arayüz ve tasarım sistemi** bölümünün yerini alır; iki belge çelişirse bu dosya geçerlidir.
 > Anthropic'in resmi **frontend-design** skill'i ile birlikte kullanılmak üzere yazıldı. Burada sabitlenen kararlar (palet, yazı tipleri, yerleşim, bileşenler) aynen uygulanır; burada boş bırakılan ayrıntılarda skill'in ilkeleri geçerlidir.
-> Son güncelleme: 20 Eylül 2026
+> Son güncelleme: 20 Eylül 2026. **Durum: Adım 0–5 uygulandı ve canlıda** (kararlar ve sapmalar PROJECT.md §15'te).
 
 ## İçindekiler
 
@@ -758,3 +758,4 @@ Tüm sayfaları belirtilen genişliklerde ve klavyeyle gözden geçir, sorunlar�
 | 2026-09-20 | Fontlar: Unbounded (başlık ve saatler) + Figtree (gövde) | Belirgin kişilik, iyi okunurluk, Türkçe karakter desteği |
 | 2026-09-20 | Mobilde giriş yapmış kullanıcılar için alt sekme çubuğu | Tek elle kullanım, uygulama hissi |
 | 2026-09-20 | Anthropic frontend-design skill'i kullanılır | Framework bağımsız; saf CSS projeye uygun |
+| 2026-09-20 | Uygulama sapmaları: `panel.js` yazılmadı (davranış `app.js`'te); Bugün sayfasında gün gezintisi yok, "Tüm randevular" bağlantısı var; Bilgiler sayfasında yayın kutusu yok (Bugün'de) | View'lara dokunmadan uygulanabilenle yetinmek; ayrıntı PROJECT.md §15 |

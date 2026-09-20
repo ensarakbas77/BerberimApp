@@ -113,6 +113,8 @@ class CancelByCustomerTests(TestCase):
         with mock.patch.object(QuerySet, "select_for_update", autospec=True, side_effect=original) as locked:
             self.cancel(at(SUNDAY, 12))
         self.assertTrue(locked.called)
+        # Dükkan satırı kilitlenmez: sahip düzenlemesiyle kilit sırası çakışıp kilitlenmeye yol açmasın.
+        self.assertEqual(locked.call_args.kwargs, {"of": ("self",)})
 
     def test_shop_of_another_owner_is_unaffected(self):
         other = make_published_shop(username="baska", name="Başka Berber")

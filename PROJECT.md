@@ -2,7 +2,7 @@
 
 > **Bu dosya projenin tek kaynak belgesidir.** Claude Code her fazdan önce bu dosyayı okur.
 > Bir karar değişirse önce bu dosya güncellenir, sonra kod yazılır (bkz. §15 Karar günlüğü).
-> Son güncelleme: 20 Eylül 2026
+> Son güncelleme: 20 Eylül 2026 (arayüz yenileme ve güvenlik denetimi sonrası)
 
 ## İçindekiler
 
@@ -111,7 +111,7 @@ whitenoise>=6.7
 - **Dosya yükleme yok.** Vercel'in dosya sistemi kalıcı değil. Dükkan fotoğrafları §14'te Supabase Storage ile gelecek.
 - **Zaman:** `TIME_ZONE = "Europe/Istanbul"`, `USE_TZ = True`. Randevular `DateField + TimeField` olarak **yerel saatle** saklanır. Türkiye 2016'dan beri sabit UTC+3 kullandığı için yaz saati sorunu yok. "Şimdi" her zaman `timezone.localtime()` ile alınır.
 - **Arka plan işi yok.** "İşaretlenmemiş geçmiş randevular" gibi durumlar sorgu anında hesaplanır; cron gerekmez.
-- **Çakışma önleme:** transaction + dükkan satırında `select_for_update` + veritabanı kısıtı (§7.3).
+- **Çakışma önleme:** transaction + müşteri ve dükkan satırlarında `select_for_update` + veritabanı kısıtı (§7.3). SQLite kilitleri yok sayar; gerçek eşzamanlılık Postgres'te elle denenir (README "Güvenlik ve bakım").
 - **Personel özelliğine hazırlık:** Müsaitlik fonksiyonu "meşgul aralıklar listesi" üzerinden çalışacak şekilde yazılır; ileride personel bazlı hesaplamaya kolayca dönüşür. Şimdilik `staff` alanı **eklenmez**.
 
 ---
@@ -282,12 +282,12 @@ Saat aritmetiği `datetime.combine(day, t)` üzerinden yapılır. Fonksiyon saf 
 
 ### 7.3 Randevu oluşturma (`create_appointment`)
 1. Kullanıcı `customer` değilse hata.
-2. `transaction.atomic()` içinde `Shop.objects.select_for_update().get(pk=shop.pk)` ile dükkan satırı kilitlenir (aynı dükkana eşzamanlı istekler sıraya girer).
+2. `transaction.atomic()` içinde önce müşterinin `User` satırı, sonra `Shop.objects.select_for_update().get(pk=shop.pk)` ile dükkan satırı kilitlenir (aynı dükkana ve aynı müşteriye gelen eşzamanlı istekler sıraya girer; kilit sırası müşteri → dükkan, bkz. §15 son satır).
 3. Limitler: müşterinin gelecekteki planlı randevu sayısı `MAX_ACTIVE_TOTAL`'dan, aynı dükkandaki `MAX_ACTIVE_PER_SHOP`'tan az olmalı; aynı saat aralığında başka dükkanda planlı randevusu olmamalı.
 4. İstenen saat `get_available_slots(...)` sonucunda yoksa: "Bu saat az önce doldu. Başka bir saat seç."
 5. Hizmet adı, fiyat ve bitiş saati kopyalanarak kayıt oluşturulur. `IntegrityError` gelirse 4. maddedeki mesaj gösterilir.
 6. Hatalar `BookingError(message)` istisnasıyla view'a taşınır ve Django messages ile gösterilir.
-7. (Faz 7'de eklenecek) Gelmedi kısıtlaması kontrolü, adım 1'den hemen sonra.
+7. Gelmedi kısıtlaması kontrolü (§7.7), adım 1'den hemen sonra, kilitlerden önce yapılır.
 
 ### 7.4 Durumlar ve geçişler
 
@@ -367,7 +367,7 @@ slug = slugify(name.translate(TR_MAP))  # çakışmada sonuna -2, -3 ...
 ### Dükkan sahibi paneli
 | URL | Sayfa | Faz |
 |---|---|---|
-| `/panel/` | Özet: bugünün randevuları, kurulum listesi | 3 (kurulum), 6 (randevular) |
+| `/panel/` | Bugün: sayaçlar, işaretlenmeyi bekleyenler, bugünün programı, kurulum listesi ve yayın kutusu | 3 (kurulum), 6 (randevular) |
 | `/panel/dukkan/` | Dükkan bilgileri ve konum | 3 |
 | `/panel/calisma-saatleri/` | 7 günlük tek form | 3 |
 | `/panel/hizmetler/` (+ `yeni/`, `<id>/duzenle/`) | Hizmetler | 3 |
@@ -388,10 +388,10 @@ slug = slugify(name.translate(TR_MAP))  # çakışmada sonuna -2, -3 ...
 - Dükkanı olmayan sahip `/panel/` altındaki her sayfadan `/panel/dukkan/` kurulum formuna yönlendirilir.
 - Sahip `/randevularim/` gibi müşteri sayfalarına girerse `/panel/`e; müşteri `/panel/`e girerse `/`e yönlendirilir.
 
-### Header navigasyonu
-- **Ziyaretçi:** Berberler, Giriş yap, Kayıt ol
-- **Müşteri:** Berberler, Randevularım, `@kullaniciadi` menüsü (Profil, Çıkış)
-- **Sahip:** Panel, Randevular, Dükkanımı gör, Çıkış
+### Gezinti (FRONTEND-TASARIM.md §9)
+- **Ziyaretçi:** üstte Berberler, Giriş yap, Kayıt ol (mobilde yalnızca "Giriş yap" düğmesi).
+- **Müşteri:** ≥1024 px'te üst gezinti (Berberler, Randevularım, Profil, Çıkış); mobilde alt sekme çubuğu (Berberler, Randevularım, Profil). Mobilde "Çıkış yap" Profil sayfasındadır.
+- **Sahip:** ≥1024 px'te üst gezinti (Bugün, Randevular, Dükkan, Dükkanımı gör, Profil, Çıkış) ve panelde sol yan menü; mobilde alt sekme çubuğu (Bugün, Randevular, Dükkan, Profil), dükkan ayar sayfalarında ayrıca yatay çip menü.
 
 ### Ekran taslakları (mobil, 375 px)
 
@@ -564,6 +564,8 @@ if not DEBUG:
 - `ALLOWED_HOSTS` ve `CSRF_TRUSTED_ORIGINS` ortam değişkeninden virgülle ayrılmış okunur.
 - `LOGIN_URL = "accounts:login"`.
 - Admin adresi `/yonetim/`.
+- Yukarıdaki alıntı özettir; gerçek dosya `config/settings.py`'dir. `DEBUG` kapalıyken `DJANGO_SECRET_KEY` zorunludur (yoksa uygulama açılmaz), testlerde `DATABASE_URL` her zaman yok sayılır (SQLite).
+- Yalnızca betik ve komutların okuduğu ek değişkenler (Django ayarı değildir): `DATABASE_PASSWORD` (yalnızca `scripts/migrate-production.ps1`), `DEMO_PASSWORD` (yalnızca `seed_demo`). İkisi de `.env`'de tutulur, commit'lenmez.
 
 ---
 
@@ -614,6 +616,9 @@ DATABASE_URL="postgresql://postgres.<ref>:<şifre>@<pooler-host>:5432/postgres" 
 | 5 | Randevu alma | Müsaitlik, randevu akışı, Randevularım, iptal |
 | 6 | Randevu yönetimi | Panelde günlük liste, durum işaretleme, düzenleme, iptal |
 | 7 | Kurallar, cila, demo | Gelmedi kısıtlaması, demo verisi, son kontroller, canlı yayın |
+| Arayüz | Yeniden tasarım (FRONTEND-TASARIM.md, Adım 0–5) | Yeni tasarım sistemi, alt sekme çubuğu, tüm sayfalar; backend değişmedi |
+
+**Durum (20 Eylül 2026):** Faz 0–7 ve arayüz yenilemesi tamam ve canlıda. Açık kalan tek iş, canlı duman testinin giriş gerektiren 2–4. adımlarıdır (README "Canlı duman testi"). Güvenlik denetimi bulguları ve ertelenenler §15'in son satırlarında.
 
 **Her faz için genel prompt şablonu**
 ```
@@ -881,7 +886,11 @@ Kural §7.7, metinler §9.7, demo komutu ve duman testi bu fazın tanımında.
 | **Puanlama ve yorum** | Yalnızca durumu *Tamamlandı* olan randevunun sahibi, o randevu için bir kez puan (1–5) ve yorum bırakır. `Review(appointment OneToOne, rating, comment)`. Dükkan detayında ortalama puan. |
 | **Personel / koltuk seçimi** | `Staff(shop, name, is_active)`, personel başına çalışma saatleri, `Appointment.staff` (null). Müsaitlik personel bazında hesaplanır; "Farketmez" seçeneği ilk boş personeli atar. |
 | **Dükkan fotoğrafları** | Supabase Storage'a yükleme; kapak ve galeri. |
-| **E-posta doğrulama ve şifre sıfırlama** | Bir e-posta gönderim servisi ile. |
+| **E-posta doğrulama ve şifre sıfırlama** | Bir e-posta gönderim servisi ile. Şu an başkasının e-postasıyla hesap açılabilir ve şifre sıfırlanamaz (güvenlik denetimi, sarı bulgu). |
+| **Hız sınırı** | Giriş, kayıt, `/yonetim/` ve müsaitlik API'si için. Ek paket kullanılmadığından şimdilik Vercel Firewall kuralı önerilir; uygulama içinde istenirse küçük bir deneme tablosu. |
+| **Dükkan yayını için yönetici onayı** | `Shop.is_approved` ve `is_publicly_visible` koşulu; canlıdaki mevcut dükkanı onaylayan bir veri adımı gerektirir. Şu an her sahip kurulumu bitirince kendi başına yayına çıkar. |
+| **Gelmedi işaretine üst sınır ve itiraz** | İlk işaretlemeye de gün sınırı, müşterinin Randevularım'da hangi randevunun Gelmedi sayıldığını görmesi (§7.7 ve §15 kararı korunuyor, ürün kararı bekliyor). |
+| **Süresi dolan oturumları temizleme** | `clearsessions` için Vercel Cron ya da aylık elle çalıştırma. |
 | **KVKK** | Aydınlatma metni, kayıt sırasında onay kutusu, hesap silme. |
 | **Telefonla gelen randevu** | Sahibin panelden hesabı olmayan müşteri için manuel randevu eklemesi. |
 | **Diğer** | Yeni ilçeler, favori dükkanlar, basit istatistikler, PWA (ana ekrana ekle). |
@@ -965,3 +974,4 @@ Aşağıdakiler prototip için alınmış varsayılan kararlardır; değiştirme
 | 2026-09-20 | Ön yüz Adım 3 (randevu akışı): randevu sayfasında iki "Randevuyu onayla" düğmesi vardır (fişte ve mobil alt eylem çubuğunda; ikincisi `form="booking-form"` ile aynı formu gönderir, saat seçilince belirir); kısıt nedeni fişin içinde de yazılır. `booking.js` API ve form sözleşmesini korur; yüklenirken iskelet hap kutuları, saat değişince fiş saati 180 ms'lik belirme animasyonu (§11) vardır ve eski direk şeridi animasyonu kalktı. Randevularım'da "Yaklaşan | Geçmiş" bölümlü kontrol (JS yoksa iki bölüm alt alta), tek boş durum "Henüz randevun yok.", yeni randevu `appointment--new` çerçevesiyle vurgulanır | Tasarım dosyasının §10.4, §10.6 ve §11 kararları |
 | 2026-09-20 | Ön yüz Adım 4 (sahip paneli): panel sayfaları `base_panel.html` içindeki `.panel-layout` ile çizilir; masaüstünde sol yan menü (Bugün, Randevular, "Dükkan" başlığı altında dört ayar sayfası, en altta Dükkanımı gör ve Profil), mobilde alt sekme çubuğu ana bölümleri taşır ve dükkan ayar sayfalarının üstünde "Dükkanımı gör" çipini de içeren yatay çip menü görünür (Adım 2'de ertelenen bağlantı). "Özet" sayfasının adı "Bugün" olur. Bugün sayfasında gün gezintisi yoktur (görünüm hep bugün; `panel:home` view'ı değişmedi), yerine "Tüm randevular" bağlantısı durur. İşaretlenmeyi bekleyenler (bugünün ve önceki günlerin satırları) tek "İşaretlenmeyi bekleyen (N)" bölümünde toplanır, önceki günlerin satırları tarihi de yazar. Kurulum kontrol listesi rozet yerine onay ikonlu satırlardır (eksik satır "Tamamla" bağlantısı). Gelmedi rozeti "N kez gelmedi" yazar, 90 günlük pencere ekran okuyucu için gizli metindedir. Çalışma saatleri mobilde gün kartı, ≥1024 px'te tablo düzenindedir; mola `<details>` içindedir ve kayıtlıysa açık gelir. Bilgiler sayfasında yayın kutusu yoktur (rozet ve Bugün sayfasına bağlantı); yayın kutusu Bugün'de kalır (§15 996). Şablon adları, context, form alanları, JS kancaları ve URL'ler değişmedi | Tasarım dosyasının §9.3, §10.7–§10.9 kararları; view'lara dokunmadan uygulanabilenle yetinmek |
 | 2026-09-20 | Ön yüz Adım 5 (cila): kalite kontrol 360/390/768/1024/1280 px'te taşmasız; dokunma alanları 44 px'e tamamlandı (atlama bağlantısı, şifre göster, bölümlü kontrol, telefon ve form altı bağlantıları, harita yakınlaştırma düğmeleri); uzun ad ve notlar için gövdede `overflow-wrap: break-word`. Tasarım dosyasının §14'ündeki `panel.js` yazılmadı: `data-confirm` ve çip menüde etkin çipi görünür alana kaydırma `app.js`'te, panel sayfaları için ayrı JS dosyası gerekmedi. Ölü CSS kaldırıldı, geçiş katmanı yok. README'ye "Arayüz" bölümü eklendi. Yayın (main'e birleştirme ve deploy) kullanıcı onayına bırakıldı | §13 kontrol listesi; CLAUDE.md kuralı: commit ve push yalnızca istenince, canlıya çıkış kullanıcı onayıyla |
+| 2026-09-20 | Güvenlik denetimi (code-review-security, 0 kırmızı, 5 sarı, 6 yeşil) sonrası küçük düzeltmeler: (a) `create_appointment` satır kilidini önce müşterinin `User` satırında, sonra dükkan satırında alır; kilit dükkan başınaydı, bu yüzden aynı müşterinin iki dükkana eşzamanlı isteği toplam limiti ve "aynı saatte iki randevu" denetimini aşabilirdi; kilit sırası her yerde müşteri → dükkan. (b) `cancel_by_customer` yalnızca randevu satırını kilitler (`of=("self",)`); `select_related("shop")` dükkanı da kilitliyor ve `update_by_shop`'un dükkan → randevu sırasıyla nadir bir kilitlenme (deadlock) yaratabiliyordu. (c) Kapalı gün eklerken dükkan satırı kilitlenir ve "o gün planlı randevu yok" denetimi ile kayıt aynı işlemde yapılır (randevu oluşturma ile aynı kilit). (d) Giriş sayfası, oturum açmış müşteri `?next=` olarak kendi adresiyle gelirse Django'nun "Redirection loop" hatası yerine ana sayfaya yönlendirir. Ürün kararı gerektiren bulgular ertelendi: e-posta doğrulaması ve şifre sıfırlama (SMTP gerekir, §14), yayın öncesi yönetici onayı, Gelmedi işaretine üst sınır ve itiraz yolu (§7.7 kararı korunuyor). Giriş, kayıt ve `/yonetim/` için hız sınırı kod yerine Vercel Firewall kuralıyla çözülür (README "Güvenlik ve bakım"). SQLite `select_for_update`'i yok saydığı için kilitler yalnızca çağrı düzeyinde (casus test) sınanır; gerçek eşzamanlılık Postgres'te elle denenir | Denetim bulguları 5, 6, 7 ve 11; "kilit dükkan başınadır, kullanıcı başına değildir" boşluğunu ve kilitlenme riskini kapatmak |

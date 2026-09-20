@@ -16,7 +16,9 @@ class LoginView(auth_views.LoginView):
     redirect_authenticated_user = True
 
     def get_success_url(self):
-        return services.post_login_url(self.request.user, self.get_redirect_url())
+        url = services.post_login_url(self.request.user, self.get_redirect_url())
+        # Oturumu açık müşteri `?next=` olarak bu sayfanın kendisiyle gelirse Django "Redirection loop" hatası verir.
+        return services.home_url(self.request.user) if url == self.request.path else url
 
 
 def _register(request, form_class, template_name):

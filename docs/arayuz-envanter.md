@@ -1,5 +1,7 @@
 # Arayüz envanteri (FRONTEND-TASARIM.md, Adım 0)
 
+> **Tarihsel kayıt:** Bu envanter yeniden tasarımdan **önceki** durumu anlatır (Adım 0). Yenileme Adım 0–5 ile tamamlandı; güncel yapı için README "Arayüz" bölümüne ve FRONTEND-TASARIM.md'ye bak. Buradaki dosya ve sınıf adları artık birebir geçerli değildir.
+
 > Bu dosya yalnızca **envanterdir**: hiçbir şablon, CSS, JS ya da görsel dosya değişmedi.
 > Kaynak: 20 Eylül 2026 tarihli koddur (Faz 7 sonrası, `main` = `b124cce`). Backend'e dokunulmaz (FRONTEND-TASARIM.md §1).
 

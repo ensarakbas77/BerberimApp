@@ -5,6 +5,7 @@ from unittest import mock
 from django.db.models.query import QuerySet
 from django.test import SimpleTestCase, TestCase
 
+from accounts.models import User
 from accounts.tests.helpers import make_owner
 from bookings import services
 from bookings.models import Appointment
@@ -103,6 +104,14 @@ class CreateAppointmentTests(TestCase):
         with mock.patch.object(QuerySet, "select_for_update", autospec=True, side_effect=original) as locked:
             self.book()
         self.assertTrue(locked.called)
+
+    def test_the_customer_row_is_locked_before_the_shop_row(self):
+        # SQLite kilitleri yok sayar; burada yalnızca kilit sırası (müşteri → dükkan) sınanır. Gerçek eşzamanlılık
+        # Postgres'te elle denenir (README "Güvenlik ve bakım").
+        original = QuerySet.select_for_update
+        with mock.patch.object(QuerySet, "select_for_update", autospec=True, side_effect=original) as locked:
+            self.book()
+        self.assertEqual([call.args[0].model for call in locked.call_args_list], [User, Shop])
 
     # --- önerilmeyen saatler ---
     def test_times_that_are_not_offered_are_refused(self):

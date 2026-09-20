@@ -319,8 +319,10 @@ def get_count_limit_message(user, shop, now=None):
 def create_appointment(user, shop, service, day, start_time, note="", now=None):
     """Randevuyu oluşturur; kurallara uymazsa `BookingError` fırlatır (PROJECT.md §7.3).
 
-    Dükkan satırı kilitlenir, böylece aynı dükkana eşzamanlı istekler sıraya girer. Asıl çakışma kontrolü müsaitlik
-    listesidir; veritabanı kısıtı (`uniq_active_slot`) son savunma hattıdır.
+    Önce müşterinin, sonra dükkanın satırı kilitlenir (kilit sırası her yerde müşteri → dükkan). Dükkan kilidi aynı
+    dükkana eşzamanlı istekleri, müşteri kilidi aynı müşterinin farklı dükkanlara eşzamanlı isteklerini sıraya sokar;
+    böylece toplam limit ve "aynı saatte iki randevu" denetimi aşılamaz. Asıl çakışma kontrolü müsaitlik listesidir;
+    veritabanı kısıtı (`uniq_active_slot`) son savunma hattıdır.
     """
     now = timezone.localtime(now)
     if user.role != User.Role.CUSTOMER:
@@ -335,6 +337,7 @@ def create_appointment(user, shop, service, day, start_time, note="", now=None):
 
     try:
         with transaction.atomic():
+            User.objects.select_for_update().get(pk=user.pk)
             locked_shop = Shop.objects.select_for_update().get(pk=shop.pk)
             if not is_publicly_visible(locked_shop):
                 raise BookingError(SHOP_NOT_BOOKABLE_MESSAGE)
@@ -415,7 +418,9 @@ def cancel_by_customer(appointment, user, now=None):
     if appointment.customer_id != user.pk:
         raise BookingError("Bu randevu sana ait değil.")
     with transaction.atomic():
-        locked = Appointment.objects.select_for_update().select_related("shop").get(pk=appointment.pk)
+        # Yalnızca randevu satırı kilitlenir: `select_related("shop")` dükkanı da kilitler ve sahip düzenlemesinin
+        # (`update_by_shop`: dükkan → randevu) kilit sırasıyla nadir bir kilitlenmeye yol açardı.
+        locked = Appointment.objects.select_for_update(of=("self",)).select_related("shop").get(pk=appointment.pk)
         if locked.status != Appointment.Status.SCHEDULED:
             raise BookingError("Bu randevu artık iptal edilemez.")
         if not can_cancel_by_customer(locked, now):

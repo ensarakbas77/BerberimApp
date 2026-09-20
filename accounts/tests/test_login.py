@@ -22,6 +22,11 @@ class LoginTests(TestCase):
         self.assertRedirects(response, "/")
         self.assertEqual(int(self.client.session["_auth_user_id"]), self.customer.pk)
 
+    def test_logged_in_customer_with_next_pointing_at_the_login_page_goes_home(self):
+        self.client.force_login(self.customer)
+        response = self.client.get(f"{LOGIN_URL}?next={LOGIN_URL}")
+        self.assertRedirects(response, "/", fetch_redirect_response=False)
+
     def test_customer_goes_to_safe_next(self):
         response = self.login("musteri@example.com", next="/berber/kirkpinar-berber/randevu/")
         self.assertRedirects(response, "/berber/kirkpinar-berber/randevu/", fetch_redirect_response=False)
