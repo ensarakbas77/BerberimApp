@@ -12,7 +12,7 @@
 | `forms.py` | 22 | `ShowcaseFilterForm`: liste sayfasının arama ve süzgeçleri |
 | `urls.py` | 10 | `/berberler/`, `/berber/<slug>/` (`app_name = "shops"`) |
 | `admin.py` | 36 | Django admin'de dükkan yönetimi (saat, hizmet, kapalı gün satır içi) |
-| `tests/` | ~151 test | Bkz. bölüm 8 |
+| `tests/` | 147 test | Bkz. bölüm 8 |
 
 Dükkanı **oluşturan ve düzenleyen** sayfalar (kurulum, saatler, hizmetler) `panel/` uygulamasındadır; bu uygulamanın `services.py`'sini çağırırlar. Bu uygulamadaki view'lar yalnızca herkese açık vitrin içindir.
 

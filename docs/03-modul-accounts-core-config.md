@@ -20,7 +20,7 @@ Bu belge projenin "temel" üç parçasını anlatır: kimlik ve hesaplar (`accou
 | `services.py` | 56 | Telefon normalizasyonu, güvenli `next`, giriş sonrası yönlendirme |
 | `admin.py` | 47 | Django admin'de kullanıcı yönetimi |
 | `migrations/0001_initial.py` | | Tablo tanımı (düzenlenmez) |
-| `tests/` | ~110 test | Bkz. A.6 |
+| `tests/` | 110 test | Bkz. A.6 |
 
 ## A.2 Önemli parçalar
 
@@ -150,7 +150,7 @@ Diğer uygulamalar buradan şunları kullanır: `accounts.decorators` (bookings 
 | `forms.py` | 31 | `StyledFormMixin`: bütün formların ortak davranışı |
 | `templatetags/berberim.py` | 40 | Şablon filtreleri: `price`, `phone`, `tel_href` |
 | `management/commands/seed_demo.py` | | Demo verisi komutu |
-| `tests/` | ~66 test | Bkz. B.5 |
+| `tests/` | 66 test | Bkz. B.5 |
 
 Şablonlar `templates/core/home.html` (ana sayfa) ve `templates/403_csrf.html`, `404.html`, `500.html`'dir.
 

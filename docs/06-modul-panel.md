@@ -11,7 +11,7 @@
 | `decorators.py` | 25 | `shop_required`: yalnızca dükkanı olan sahip, `request.shop`'u doldurur |
 | `urls.py` | 24 | `/panel/...` adresleri (`app_name = "panel"`) |
 | `models.py`, `admin.py` | 3 + 3 | Boş (bu uygulamada model yok) |
-| `tests/` | ~252 test | Bkz. bölüm 8 |
+| `tests/` | 253 test | Bkz. bölüm 8 |
 
 Şablonlar `templates/panel/` altındadır (bkz. [07 Arayüz katmanı](07-arayuz-katmani.md)).
 
@@ -165,7 +165,7 @@ Düğmenin görünmesini `get_shop_actions` belirler; sunucu yine de aynı kural
 
 ## 8. Testler
 
-`panel/tests/` (yaklaşık 252 test):
+`panel/tests/` (253 test):
 
 | Dosya | Ne sınar |
 |---|---|

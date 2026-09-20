@@ -24,7 +24,7 @@ Uygulamanın işleri üç gruba ayrılır:
 | `forms.py` | 38 | `BookingForm` |
 | `urls.py` | 12 | Adresler (`app_name = "bookings"`) |
 | `admin.py` | 12 | Django admin'de randevu listesi |
-| `tests/` | ~283 test | Bkz. bölüm 14 |
+| `tests/` | 283 test | Bkz. bölüm 14 |
 
 Panelde sahibin randevu ekranları `panel/` uygulamasındadır ama tüm kuralları buradaki servisler yürütür.
 
@@ -307,7 +307,7 @@ Adım adım hâli 01 Mimari genel bakış, bölüm 5'te. Özet:
 
 ## 14. Testler
 
-`bookings/tests/` (toplam yaklaşık 283 test; bu modülün en kapsamlı test grubu):
+`bookings/tests/` (283 test; projenin en kapsamlı test grubu):
 
 | Dosya | Ne sınar |
 |---|---|

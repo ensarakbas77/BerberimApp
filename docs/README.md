@@ -11,7 +11,9 @@ Koda yeni bakan biri için önerilen sıra:
 1. Önce [README](../README.md): proje ne yapıyor, nasıl çalıştırılır.
 2. [01 Mimari genel bakış](01-mimari-genel-bakis.md): büyük resim, katmanlar, klasör haritası, bir isteğin yolculuğu.
 3. [02 Veri modeli](02-veri-modeli.md): tablolar, ilişkiler, randevu durum makinesi.
-4. Sonra ilgilendiğin modülün kılavuzu: [03 accounts, core, config](03-modul-accounts-core-config.md) ve [04 shops](04-modul-shops.md), [05 bookings](05-modul-bookings.md), [06 panel](06-modul-panel.md) ve [07 arayüz katmanı](07-arayuz-katmani.md) (şablonlar, CSS, JS) hazır.
+4. Sonra ilgilendiğin modülün kılavuzu: [03 accounts, core, config](03-modul-accounts-core-config.md) ve [04 shops](04-modul-shops.md), [05 bookings](05-modul-bookings.md), [06 panel](06-modul-panel.md), [07 arayüz katmanı](07-arayuz-katmani.md) (şablonlar, CSS, JS).
+5. Ardından [08 test](08-test-rehberi.md), [09 operasyon](09-operasyon.md) ve [10 güvenlik](10-guvenlik.md) belgeleri.
+6. Kullanıcı gözüyle: [11 kullanıcı kılavuzu](11-kullanici-kilavuzu.md); sürecin özeti: [12 proje raporu](12-proje-raporu.md).
 
 Her modül kılavuzu aynı üç katmanlı kalıbı izler:
 
@@ -35,8 +37,8 @@ Ayrıca her kılavuzda "dikkat edilecekler" (kodu değiştirirken tuzak olan yer
 | 2 | 4 | `04-modul-shops.md` | Slug, telefon, çalışma saatleri, dükkan oluşturma, yayın kuralları, vitrin ve arama mantığı | Hazır |
 | 3 | 5 | `05-modul-bookings.md` | Müsaitlik algoritması, randevu oluşturma, kilitler, iptal, sahip işlemleri, Gelmedi kuralı (en kritik modül) | Hazır |
 | 3 | 6 | `06-modul-panel.md`, `07-arayuz-katmani.md` | Sahip paneli view'ları ve formları; şablonlar, CSS, JS | Hazır |
-| 4 | 7 | `08-test-rehberi.md`, `09-operasyon.md`, `10-guvenlik.md` | Test stratejisi; dağıtım ve ortam; güvenlik denetimi özeti | Sırada |
-| 4 | 8 | `11-kullanici-kilavuzu.md`, `12-proje-raporu.md`, Word derlemesi | Müşteri ve sahip kılavuzu; süreç ve kazanımlar; `.docx` çıktısı | Sırada |
+| 4 | 7 | `08-test-rehberi.md`, `09-operasyon.md`, `10-guvenlik.md` | Test stratejisi ve kalıpları; dağıtım, ortam, sorun giderme; tehdit haritası ve denetim sonucu | Hazır |
+| 4 | 8 | `11-kullanici-kilavuzu.md`, `12-proje-raporu.md`, Word derlemesi | Ekran görüntülü müşteri ve sahip kılavuzu; süreç ve kazanımlar; `dist/Berberim-Dokumantasyon.docx` | Hazır |
 
 ## Yazım kuralları
 
@@ -48,7 +50,17 @@ Ayrıca her kılavuzda "dikkat edilecekler" (kodu değiştirirken tuzak olan yer
 
 ## Word çıktısı
 
-Kaynak Markdown'dır; Word dosyası ondan türetilir, elle düzenlenmez. Faz 8'de belgeler tek dosyada birleştirilip `.docx` üretilir (bu makinede `pandoc` kurulu değil, araç o fazda seçilecek).
+Kaynak Markdown'dır; Word dosyası ondan türetilir, **elle düzenlenmez**. Tüm belgeler tek dosyada birleştirilir: [dist/Berberim-Dokumantasyon.docx](dist/Berberim-Dokumantasyon.docx) (kapak, içindekiler, plan, proje raporu, 01–11 belgeleri, ekran görüntüleriyle).
+
+Yeniden üretmek için (proje bağımlılıklarından ayrı, geçici bir klasörde `docx` ve `marked` paketleri gerekir; `requirements.txt`'e eklenmez):
+
+```bash
+mkdir /tmp/docx-build && cd /tmp/docx-build && npm init -y && npm install docx marked@12
+cd <proje-klasörü>
+NODE_PATH=/tmp/docx-build/node_modules DOC_AUTHOR="Ad Soyad" node docs/tools/build-docx.js
+```
+
+Betik (`tools/build-docx.js`) Markdown'ı `marked` ile ayrıştırır, başlıkları, listeleri, tabloları, kod bloklarını ve resimleri Word öğelerine çevirir. Word, içindekiler tablosunu ilk açılışta güncellemek isteyebilir ("Evet" deyin). Ekran görüntüleri `img/` klasöründe, demo verisiyle alınmıştır.
 
 ## Mevcut belgeler
 
@@ -59,3 +71,4 @@ Kaynak Markdown'dır; Word dosyası ondan türetilir, elle düzenlenmez. Faz 8'd
 | [CLAUDE.md](../CLAUDE.md) | Claude Code'un her oturumda okuduğu kısa proje hafızası |
 | [FRONTEND-TASARIM.md](../FRONTEND-TASARIM.md) | Arayüz tasarım sistemi |
 | [arayuz-envanter.md](arayuz-envanter.md) | Yeniden tasarımdan önceki arayüz envanteri (tarihsel kayıt) |
+| [dist/Berberim-Dokumantasyon.docx](dist/Berberim-Dokumantasyon.docx) | Bu belgelerin tek dosyalık Word sürümü (teslim için) |
