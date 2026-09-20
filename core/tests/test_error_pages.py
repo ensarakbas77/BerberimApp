@@ -16,7 +16,7 @@ class CsrfFailurePageTests(TestCase):
     def test_a_visitor_gets_a_turkish_page_with_the_visitor_header(self):
         response = Client(enforce_csrf_checks=True).post("/hesap/giris/", {"username": "a@example.com", "password": "x"})
         self.assertEqual(response.status_code, 403)
-        self.assertContains(response, "<h1>İşlem tamamlanamadı.</h1>", status_code=403, html=True)
+        self.assertContains(response, '<h1 class="error-page__title">İşlem tamamlanamadı.</h1>', status_code=403, html=True)
         self.assertContains(response, "Sayfayı yenileyip işlemi tekrar dene", status_code=403)
         self.assertContains(response, 'href="/">Ana sayfaya dön</a>', status_code=403)
         self.assertContains(response, "Giriş yap", status_code=403)
@@ -38,7 +38,7 @@ class CsrfFailurePageTests(TestCase):
         client = Client(enforce_csrf_checks=True)
         self.assertTrue(client.login(email="sahip@example.com", password=PASSWORD))
         response = client.post("/hesap/cikis/")
-        self.assertContains(response, 'href="/panel/"', status_code=403)
+        self.assertContains(response, 'href="/panel/dukkan/"', status_code=403)  # dükkanı olmayan sahip: kurulum
 
 
 class PermissionDeniedPageTests(TestCase):
@@ -48,6 +48,6 @@ class PermissionDeniedPageTests(TestCase):
         response = permission_denied(request, PermissionDenied())
         self.assertEqual(response.status_code, 403)
         content = response.content.decode()
-        self.assertIn("<h1>Bu sayfaya erişemezsin.</h1>", content)
+        self.assertIn('<h1 class="error-page__title">Bu sayfaya erişimin yok.</h1>', content)
         self.assertIn("Ana sayfaya dön", content)
         self.assertIn('lang="tr"', content)

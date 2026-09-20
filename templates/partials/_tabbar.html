@@ -1,0 +1,21 @@
+{% load static %}{% comment %}Alt sekme çubuğu (FRONTEND-TASARIM.md §9.2): yalnızca giriş yapmış kullanıcılar, <1024 px. Limon kullanılmaz.
+Çıkış, Profil sayfasındaki POST formuyla yapılır.{% endcomment %}
+{% with ns=request.resolver_match.namespace name=request.resolver_match.url_name %}
+<nav class="tabbar" aria-label="Sekmeler">
+  <ul>
+    {% if user.role == "owner" %}
+      {% if user.shop %}
+      <li><a href="{% url 'panel:home' %}"{% if ns == "panel" and name == "home" %} aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#bugun"></use></svg>Bugün</a></li>
+      <li><a href="{% url 'panel:appointments' %}"{% if ns == "panel" and name == "appointments" or ns == "panel" and name == "appointment_detail" %} aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#liste"></use></svg>Randevular</a></li>
+      <li><a href="{% url 'panel:shop' %}"{% if ns == "panel" and name != "home" and name != "appointments" and name != "appointment_detail" %} aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#dukkan"></use></svg>Dükkan</a></li>
+      {% else %}
+      <li><a href="{% url 'panel:shop' %}"{% if ns == "panel" %} aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#dukkan"></use></svg>Dükkan</a></li>
+      {% endif %}
+    {% else %}
+      <li><a href="{% url 'shops:list' %}"{% if ns == "shops" or name == "book" %} aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#makas"></use></svg>Berberler</a></li>
+      <li><a href="{% url 'bookings:my_appointments' %}"{% if name == "my_appointments" %} aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#takvim"></use></svg>Randevularım</a></li>
+    {% endif %}
+    <li><a href="{% url 'accounts:profile' %}"{% if ns == "accounts" and name == "profile" %} aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#kullanici"></use></svg>Profil</a></li>
+  </ul>
+</nav>
+{% endwith %}

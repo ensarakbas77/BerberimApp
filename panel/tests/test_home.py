@@ -16,15 +16,15 @@ class DashboardTests(TestCase):
 
     def test_new_shop_shows_checklist_status_and_what_is_missing(self):
         response = self.client.get(HOME_URL)
-        self.assertContains(response, "<h1>Panel</h1>", html=True)
+        self.assertContains(response, "<h1>Bugün</h1>", html=True)
         self.assertContains(response, "Kırkpınar Berber")
         self.assertContains(response, '<span class="badge badge--closed">Yayında değil</span>', html=True)
         for label in ["Dükkan bilgileri", "Konum", "Çalışma saatleri", "En az bir aktif hizmet"]:
             self.assertContains(response, label)
-        # Bilgiler ve varsayılan saatler hazır, konum isteğe bağlı, hizmet eksik.
-        self.assertContains(response, '<span class="badge badge--open">Tamam</span>', html=True, count=2)
-        self.assertContains(response, '<span class="badge badge--closed">İsteğe bağlı</span>', html=True)
-        self.assertContains(response, '<span class="badge badge--unmarked">Eksik</span>', html=True)
+        # Bilgiler ve varsayılan saatler hazır (onay işaretli), konum isteğe bağlı, hizmet eksik.
+        self.assertContains(response, "checklist__item--done", count=2)
+        self.assertContains(response, "(isteğe bağlı)", count=1)
+        self.assertContains(response, 'href="/panel/hizmetler/"')
         self.assertContains(response, "Dükkanını yayına almak için eksikleri tamamla: en az bir hizmet.")
 
     def test_publish_button_is_disabled_until_the_setup_is_complete(self):
@@ -44,15 +44,14 @@ class DashboardTests(TestCase):
         self.shop.save()
         response = self.client.get(HOME_URL)
         # Bilgiler, konum ve saatler tamam; hizmet eksik.
-        self.assertContains(response, '<span class="badge badge--open">Tamam</span>', html=True, count=3)
-        self.assertContains(response, '<span class="badge badge--unmarked">Eksik</span>', html=True, count=1)
-        self.assertNotContains(response, "İsteğe bağlı")
+        self.assertContains(response, "checklist__item--done", count=3)
+        self.assertNotContains(response, "(isteğe bağlı)")
 
     def test_checklist_is_hidden_once_every_required_step_is_done(self):
         add_service(self.shop)
         response = self.client.get(HOME_URL)
         self.assertNotContains(response, 'id="setup-title"')
-        self.assertNotContains(response, "badge--unmarked")
+        self.assertNotContains(response, "checklist__item")
         self.assertContains(response, "Dükkanın hazır.")  # yayın kutusu kalır
 
     def test_checklist_is_hidden_for_a_healthy_published_shop_too(self):
@@ -78,7 +77,7 @@ class DashboardTests(TestCase):
             "/panel/kapali-gunler/",
         ]:
             self.assertContains(response, f'href="{href}"')
-        self.assertContains(response, '<a href="/panel/" aria-current="page">Özet</a>', html=True)
+        self.assertContains(response, '<a href="/panel/" aria-current="page">Bugün</a>', html=True)
         self.assertContains(self.client.get("/panel/hizmetler/yeni/"), 'href="/panel/hizmetler/" aria-current="page"')
 
 

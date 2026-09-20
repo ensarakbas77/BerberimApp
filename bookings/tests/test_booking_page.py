@@ -317,7 +317,7 @@ class BookingPostTests(TestCase):
         appointment = Appointment.objects.get()
         listing = self.client.get(f"/randevularim/?yeni={appointment.pk}")
         self.assertContains(listing, "Usta Kemal Berber")
-        self.assertContains(listing, "receipt--new")
+        self.assertContains(listing, "appointment--new")
         api = f"/api/berber/{self.shop.slug}/musait-saatler/"
         params = {"hizmet": self.service.pk, "tarih": "2026-09-22"}
         self.assertNotIn("11:30", self.client.get(api, params).json()["slots"])

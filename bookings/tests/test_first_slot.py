@@ -1,3 +1,5 @@
+import re
+
 from django.db import connection
 from django.test import TestCase
 from django.test.utils import CaptureQueriesContext
@@ -26,7 +28,7 @@ NOW = at(MONDAY, 10)  # Pazartesi 10:00 → en erken 10:30
 
 
 class FirstSlotTests(TestCase):
-    """"İlk boş saat" (PROJECT.md §13 Faz 5): bugün, en kısa aktif hizmete göre; yoksa gösterilmez."""
+    """"Sıradaki boş saat" (PROJECT.md §13 Faz 5): bugün, en kısa aktif hizmete göre; yoksa gösterilmez."""
 
     def setUp(self):
         freeze(self, NOW)
@@ -111,18 +113,26 @@ class FirstSlotPagesTests(TestCase):
         freeze(self, NOW)
         self.shop = make_published_shop(name="Usta Kemal Berber")
 
+    def first_slot_times(self, url):
+        """Sayfadaki "sıradaki boş saat" hapının saati (liste/ana sayfada gizli etiketle, detayda ayrı etiketle)."""
+        content = self.client.get(url).content.decode()
+        return re.findall(r'first-slot[^"]*tabular">(?:<span class="visually-hidden">Sıradaki boş saat: </span>)?(\d\d:\d\d)<', content)
+
     def test_list_home_and_detail_show_it(self):
         for url in ["/berberler/", "/", self.shop.get_absolute_url()]:
             with self.subTest(url=url):
-                self.assertContains(self.client.get(url), "İlk boş saat: 10:30")
+                self.assertContains(self.client.get(url), "Sıradaki boş saat")
+                self.assertIn("10:30", self.first_slot_times(url))
 
     def test_list_row_and_detail_box_markup(self):
-        self.assertContains(self.client.get("/berberler/"), '<p class="shop-row__slot tabular">İlk boş saat: 10:30</p>', html=True)
         self.assertContains(
-            self.client.get(self.shop.get_absolute_url()),
-            '<p class="booking-box__slot tabular">İlk boş saat: 10:30</p>',
+            self.client.get("/berberler/"),
+            '<span class="first-slot tabular"><span class="visually-hidden">Sıradaki boş saat: </span>10:30</span>',
             html=True,
         )
+        detail = self.client.get(self.shop.get_absolute_url())
+        self.assertContains(detail, '<p class="booking-box__label">Sıradaki boş saat</p>', html=True)
+        self.assertContains(detail, '<span class="first-slot first-slot--lg tabular">10:30</span>', html=True)
 
     def test_a_booking_moves_the_first_slot_forward_on_every_page(self):
         customer = make_customer()
@@ -131,15 +141,15 @@ class FirstSlotPagesTests(TestCase):
         )
         for url in ["/berberler/", "/", self.shop.get_absolute_url()]:
             with self.subTest(url=url):
-                response = self.client.get(url)
-                self.assertContains(response, "İlk boş saat: 11:00")
-                self.assertNotContains(response, "İlk boş saat: 10:30")
+                times = self.first_slot_times(url)
+                self.assertIn("11:00", times)
+                self.assertNotIn("10:30", times)
 
     def test_nothing_is_shown_when_there_is_no_free_slot_today(self):
         freeze(self, at(SUNDAY, 10))
         for url in ["/berberler/", self.shop.get_absolute_url()]:
             with self.subTest(url=url):
-                self.assertNotContains(self.client.get(url), "İlk boş saat")
+                self.assertEqual(self.first_slot_times(url), [])
 
     def test_owner_preview_of_an_unpublished_shop_shows_none(self):
         draft = make_shop(username="taslak", name="Taslak Berber")
@@ -147,7 +157,7 @@ class FirstSlotPagesTests(TestCase):
         login(self.client, "taslak")
         response = self.client.get(draft.get_absolute_url())
         self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, "İlk boş saat")
+        self.assertEqual(self.first_slot_times(draft.get_absolute_url()), [])
 
     def test_list_and_home_stay_constant_in_queries(self):
         for url in ["/berberler/", "/"]:

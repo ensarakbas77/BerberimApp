@@ -1,49 +1,58 @@
 {% extends "panel/base_panel.html" %}
+{% load static %}
 
-{% block title %}Panel | Berberim{% endblock %}
+{% block title %}Bugün | Berberim{% endblock %}
 
 {% block panel_content %}
-<h1>Panel</h1>
+<h1>Bugün</h1>
 
 {% if shop.is_published and blockers %}
 <div class="alert alert--warning form-alert" role="status">
+  <svg class="icon alert__icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#uyari"></use></svg>
   <p class="alert__text">Dükkanın yayında ama şunlar eksik: {{ blockers|join:", " }}. Müşteriler bu yüzden randevu alamayabilir.</p>
 </div>
 {% endif %}
 
 {% if setup_first %}{% include "panel/_setup.html" %}{% endif %}
 
-<section class="dashboard-section" aria-labelledby="today-title">
-  <div class="section-head">
-    <h2 id="today-title" class="section-title">Bugün, {{ today|date:"j F l" }}</h2>
-    <a class="section-head__link" href="{% url 'panel:appointments' %}">Tüm randevular</a>
-  </div>
-  {% include "panel/_summary.html" %}
-  {% if todays_rows %}
-  <ul class="appointment-list">
-    {% for appointment in todays_rows %}
-    {% include "panel/_appointment_row.html" with return_to="ozet" show_date=False %}
-    {% endfor %}
-  </ul>
-  {% else %}
-  <div class="panel">
-    <p>Bu gün için randevu yok. Çalışma saatlerin açık olduğu sürece müşteriler boş saatlerini görebilir.</p>
-  </div>
-  {% endif %}
-</section>
+<div class="today-head">
+  <p class="today-head__date"><time datetime="{{ today|date:'Y-m-d' }}">{{ today|date:"l, j F" }}</time></p>
+  <a class="today-head__link" href="{% url 'panel:appointments' %}">Tüm randevular</a>
+</div>
+{% include "panel/_summary.html" %}
 
-{% if earlier_rows %}
-<section class="dashboard-section" aria-labelledby="pending-title">
-  <h2 id="pending-title" class="section-title">Önceki günlerden işaretlenmeyi bekleyenler</h2>
+{% with earlier_count=earlier_rows|length %}
+{% if summary.unmarked or earlier_rows %}
+<section class="pending" aria-labelledby="pending-title">
+  <h2 id="pending-title">İşaretlenmeyi bekleyen ({{ summary.unmarked|add:earlier_count }}{% if earlier_has_more %}+{% endif %})</h2>
   <p>Müşteri geldiyse Tamamlandı, gelmediyse Gelmedi olarak işaretle.</p>
-  <ul class="appointment-list">
+  <ul class="schedule schedule--pending">
+    {% for appointment in todays_rows %}{% if appointment.display_status == "unmarked" %}
+    {% include "panel/_appointment_row.html" with return_to="ozet" show_date=False %}
+    {% endif %}{% endfor %}
     {% for appointment in earlier_rows %}
     {% include "panel/_appointment_row.html" with return_to="ozet" show_date=True %}
     {% endfor %}
   </ul>
-  {% if earlier_has_more %}<p><a href="{{ pending_url }}">İşaretlenmeyi bekleyenlerin tümünü gör</a></p>{% endif %}
+  {% if earlier_has_more %}<p class="pending__more"><a href="{{ pending_url }}">İşaretlenmeyi bekleyenlerin tümünü gör</a></p>{% endif %}
 </section>
 {% endif %}
+{% endwith %}
+
+<section class="dashboard-section" aria-labelledby="program-title">
+  <h2 id="program-title">Program</h2>
+  {% if not todays_rows %}
+  <div class="empty">
+    <p>Bu gün için randevu yok. Çalışma saatlerin açık olduğu sürece müşteriler boş saatlerini görebilir.</p>
+  </div>
+  {% elif todays_rows|length > summary.unmarked %}
+  <ul class="schedule">
+    {% for appointment in todays_rows %}{% if appointment.display_status != "unmarked" %}
+    {% include "panel/_appointment_row.html" with return_to="ozet" show_date=False %}
+    {% endif %}{% endfor %}
+  </ul>
+  {% endif %}
+</section>
 
 {% if not setup_first %}<div class="dashboard-section">{% include "panel/_setup.html" %}</div>{% endif %}
 {% endblock %}

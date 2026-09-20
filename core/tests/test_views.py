@@ -34,27 +34,30 @@ class HomeTests(TestCase):
     def test_home_renders_headline_and_lead(self):
         response = self.client.get(reverse("core:home"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Karamürsel'de tıraş vakti.")
-        self.assertContains(response, "Berberlerin boş saatlerini gör, randevunu hemen al.")
+        self.assertContains(response, "Sıra var mı?")
+        self.assertContains(response, "Karamürsel berberlerinin boş saatleri burada. Birini seç, randevunu al.")
 
     def test_page_shell(self):
         response = self.client.get("/")
         self.assertContains(response, '<html lang="tr">')
         self.assertContains(response, 'name="viewport"')
-        self.assertContains(response, "family=Archivo:wdth,wght@62..125,100..900")
-        self.assertContains(response, "pole-bar")
-        self.assertContains(response, 'data-nav-toggle')
+        self.assertContains(response, "family=Figtree:wght@400;500;600;700&family=Unbounded:wght@500;700")
+        for stylesheet in ("tokens.css", "base.css", "components.css", "pages.css"):
+            self.assertContains(response, f"css/{stylesheet}")
+        self.assertContains(response, "site-header__login")  # ziyaretçiye mobilde "Giriş yap"
         self.assertContains(response, "site-footer")
+        for old in ("Archivo", "pole-bar", "data-nav-toggle", "user-menu", 'class="tabbar"'):
+            self.assertNotContains(response, old)
 
     def test_500_page_is_standalone_and_turkish(self):
         html = render_to_string("500.html")
-        self.assertIn("Bir sorun oluştu.", html)
+        self.assertIn("Bir şeyler ters gitti.", html)
         self.assertIn('<html lang="tr">', html)
         self.assertNotIn("{%", html)
 
     def test_404_page_is_turkish(self):
         response = self.client.get("/olmayan-sayfa/")
-        self.assertContains(response, "Sayfa bulunamadı.", status_code=404)
+        self.assertContains(response, "Bu sayfa burada değil.", status_code=404)
 
     def test_messages_are_rendered_with_status_role(self):
         html = render_to_string(

@@ -64,7 +64,7 @@ class MyAppointmentsListTests(TestCase):
 
     def test_empty_states_tell_what_to_do(self):
         response = self.get()
-        self.assertContains(response, "Yaklaşan randevun yok.")
+        self.assertContains(response, "Henüz randevun yok.")
         self.assertContains(response, 'href="/berberler/"')
         self.assertContains(response, "Geçmiş randevun yok.")
 
@@ -80,7 +80,7 @@ class MyAppointmentsListTests(TestCase):
         self.assertContains(response, "11:30–12:15")
         self.assertContains(response, "Notun: Kısa kesim")
         self.assertContains(response, '<span class="badge badge--scheduled">Planlandı</span>', html=True)
-        self.assertNotContains(response, "Yaklaşan randevun yok.")
+        self.assertNotContains(response, "Henüz randevun yok.")
 
     def test_price_is_hidden_when_the_shop_hides_prices(self):
         priced = add_service(self.shop, "Saç + sakal", 45, Decimal("350.50"))
@@ -119,7 +119,7 @@ class MyAppointmentsListTests(TestCase):
         self.assertContains(response, '<span class="badge badge--cancelled">İptal edildi</span>', html=True, count=2)
         self.assertContains(response, "Dükkan iptal etti: Berber hastalandı")
         self.assertContains(response, "Sen iptal ettin.")
-        self.assertContains(response, "Yaklaşan randevun yok.")
+        self.assertContains(response, "Henüz randevun yok.")
 
     def test_shop_cancellation_without_a_reason_still_says_who_cancelled(self):
         make_appointment(
@@ -134,19 +134,19 @@ class MyAppointmentsListTests(TestCase):
             status=Appointment.Status.CANCELLED, cancelled_by=Appointment.CancelledBy.CUSTOMER,
         )
         response = self.get()
-        self.assertContains(response, "Yaklaşan randevun yok.")
+        self.assertContains(response, "Henüz randevun yok.")
 
     def test_an_ended_but_unmarked_appointment_is_past_and_waits_for_marking(self):
         make_appointment(self.shop, self.customer, self.service, MONDAY, T(10, 0))  # 10:00–10:30
         response = self.get(now=at(MONDAY, 11, 15))
         self.assertContains(response, '<span class="badge badge--unmarked">İşaretlenmeyi bekliyor</span>', html=True)
-        self.assertContains(response, "Yaklaşan randevun yok.")
+        self.assertContains(response, "Henüz randevun yok.")
         self.assertNotContains(response, "Randevuyu iptal et")
 
     def test_an_appointment_in_progress_is_still_upcoming(self):
         make_appointment(self.shop, self.customer, self.service, MONDAY, T(11, 0))  # 11:00–11:30
         response = self.get(now=at(MONDAY, 11, 15))
-        self.assertNotContains(response, "Yaklaşan randevun yok.")
+        self.assertNotContains(response, "Henüz randevun yok.")
         self.assertContains(response, '<span class="badge badge--scheduled">Planlandı</span>', html=True)
 
     def test_past_list_is_newest_first_and_capped_at_fifty(self):
@@ -188,18 +188,18 @@ class MyAppointmentsListTests(TestCase):
         self.assertNotContains(response, "İptal için dükkanı ara")
 
     # --- yeni randevu vurgusu ---
-    def test_the_new_appointment_is_shown_as_a_receipt_with_the_stripe(self):
+    def test_the_new_appointment_is_highlighted_without_the_old_stripe(self):
         appointment = make_appointment(self.shop, self.customer, self.service, MONDAY, T(11, 0))
         response = self.get(yeni=appointment.pk)
-        self.assertContains(response, "receipt--new", count=1)
-        self.assertContains(response, 'class="receipt__stripe"', count=1)
+        self.assertContains(response, 'class="appointment appointment--new"', count=1)
+        self.assertNotContains(response, "receipt__stripe")
         self.assertContains(response, f'id="randevu-{appointment.pk}"')
 
     def test_no_highlight_without_or_with_a_wrong_yeni_parameter(self):
         appointment = make_appointment(self.shop, self.customer, self.service, MONDAY, T(11, 0))
         for params in [{}, {"yeni": "99999"}, {"yeni": "abc"}, {"yeni": ""}, {"yeni": "9" * 40}, {"yeni": "-1"}]:
             with self.subTest(params=params):
-                self.assertNotContains(self.get(**params), "receipt--new")
+                self.assertNotContains(self.get(**params), "appointment--new")
         self.assertContains(self.get(), f'id="randevu-{appointment.pk}"')
 
     def test_another_customers_appointment_is_never_highlighted(self):
@@ -207,7 +207,7 @@ class MyAppointmentsListTests(TestCase):
         stranger = make_customer("yabanci")
         foreign = make_appointment(other_shop, stranger, first_service(other_shop), MONDAY, T(11, 0))
         response = self.get(yeni=foreign.pk)
-        self.assertNotContains(response, "receipt--new")
+        self.assertNotContains(response, "appointment--new")
         self.assertNotContains(response, "Başka Berber")
 
     def test_a_past_appointment_is_not_highlighted(self):
@@ -215,7 +215,7 @@ class MyAppointmentsListTests(TestCase):
             self.shop, self.customer, self.service, SUNDAY - datetime.timedelta(days=2), T(10, 0),
             status=Appointment.Status.COMPLETED,
         )
-        self.assertNotContains(self.get(yeni=past.pk), "receipt--new")
+        self.assertNotContains(self.get(yeni=past.pk), "appointment--new")
 
 
 class CancelViewTests(TestCase):
@@ -237,7 +237,7 @@ class CancelViewTests(TestCase):
         self.assertRedirects(response, URL)
         self.assertContains(response, "Randevun iptal edildi.")
         self.assertContains(response, "Sen iptal ettin.")
-        self.assertContains(response, "Yaklaşan randevun yok.")
+        self.assertContains(response, "Henüz randevun yok.")
         self.assertEqual(self.status(), Appointment.Status.CANCELLED)
 
     def test_too_late_shows_the_phone_message_and_changes_nothing(self):

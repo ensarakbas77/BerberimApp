@@ -1,5 +1,6 @@
-/* Randevu sayfası (PROJECT.md §13 Faz 5): boş saatleri API'den çeker, "Randevu fişi" özetini günceller.
-   Form normal bir POST'tur; sunucu her şeyi yeniden doğrular. Kütüphane yok. */
+/* Randevu sayfası (FRONTEND-TASARIM.md §10.4, §11): boş saatleri API'den çeker, randevu fişini ve alt çubuğu günceller.
+   Sözleşme değişmez: GET <data-api>?hizmet=<id>&tarih=YYYY-MM-DD → {"date", "slots": ["HH:MM"], "reason": null|"closed"|"full"|"out_of_range"};
+   form normal bir POST'tur (service, date, time, note) ve sunucu her şeyi yeniden doğrular. Kütüphane yok. */
 (function () {
   "use strict";
 
@@ -10,10 +11,15 @@
 
   var api = form.getAttribute("data-api");
   var slotArea = document.getElementById("slot-area");
-  var receiptService = form.querySelector("[data-receipt-service]");
-  var receiptWhen = form.querySelector("[data-receipt-when]");
-  var submit = form.querySelector("[data-submit]");
-  var locked = submit && submit.hasAttribute("data-locked"); // sayım limiti dolu: buton pasif kalır
+  var receiptService = document.querySelector("[data-receipt-service]");
+  var receiptDate = document.querySelector("[data-receipt-date]");
+  var receiptTime = document.querySelector("[data-receipt-time]");
+  var submits = Array.prototype.slice.call(document.querySelectorAll("[data-submit]"));
+  var bar = document.querySelector("[data-booking-bar]");
+  var barTime = document.querySelector("[data-bar-time]");
+  var locked = submits.some(function (button) {
+    return button.hasAttribute("data-locked"); // sayım limiti dolu ya da kısıt var: düğmeler pasif kalır
+  });
   var wantedTime = form.getAttribute("data-selected-time") || ""; // hata sonrası yeniden çizimde seçili saat
   var requestCounter = 0;
 
@@ -48,6 +54,24 @@
     slotArea.appendChild(paragraph);
   }
 
+  // Yüklenirken hap boyutunda iskelet kutular; ekran okuyucuya "Saatler yükleniyor…" söylenir
+  function setLoading() {
+    slotArea.textContent = "";
+    var status = document.createElement("p");
+    status.className = "visually-hidden";
+    status.textContent = MESSAGES.loading;
+    var grid = document.createElement("div");
+    grid.className = "slot-grid";
+    grid.setAttribute("aria-hidden", "true");
+    for (var i = 0; i < 8; i += 1) {
+      var box = document.createElement("div");
+      box.className = "slot-skeleton";
+      grid.appendChild(box);
+    }
+    slotArea.appendChild(status);
+    slotArea.appendChild(grid);
+  }
+
   function renderSlots(slots) {
     var grid = document.createElement("div");
     grid.className = "slot-grid";
@@ -75,26 +99,49 @@
     slotArea.appendChild(grid);
   }
 
+  var lastTimeText = "";
+
   function updateReceipt() {
     var service = checked("service");
     var day = checked("date");
     var time = checked("time");
 
     var duration = service ? parseInt(service.getAttribute("data-duration"), 10) : 0;
-    receiptService.textContent = service ? service.getAttribute("data-name") + ", " + duration + " dk" : "Hizmet seç";
-
-    if (day && time && service) {
-      receiptWhen.textContent = day.getAttribute("data-label") + ", " + time.value + "–" + addMinutes(time.value, duration);
-    } else if (day) {
-      receiptWhen.textContent = day.getAttribute("data-label") + ", saat seç";
+    if (service) {
+      var parts = [service.getAttribute("data-name"), duration + " dk"];
+      if (service.getAttribute("data-price")) {
+        parts.push(service.getAttribute("data-price"));
+      }
+      receiptService.textContent = parts.join(", ");
     } else {
-      receiptWhen.textContent = "Gün ve saat seç";
+      receiptService.textContent = "Hizmet seç";
     }
 
-    if (submit && !locked) {
-      var ready = !!(service && day && time);
-      submit.disabled = !ready;
-      submit.setAttribute("aria-disabled", ready ? "false" : "true");
+    receiptDate.textContent = day ? day.getAttribute("data-label") : "Gün seç";
+
+    var timeText = time && service ? time.value + "–" + addMinutes(time.value, duration) : "";
+    receiptTime.textContent = timeText || "Saat seç";
+    receiptTime.classList.toggle("receipt__time--empty", !timeText);
+    if (timeText && timeText !== lastTimeText) {
+      // Tek özel an: fişteki saat 180 ms'de hafifçe büyüyerek belirir (prefers-reduced-motion'da CSS kapatır)
+      receiptTime.classList.remove("is-updated");
+      void receiptTime.offsetWidth;
+      receiptTime.classList.add("is-updated");
+    }
+    lastTimeText = timeText;
+
+    var ready = !!(service && day && time);
+    submits.forEach(function (button) {
+      if (!locked) {
+        button.disabled = !ready;
+        button.setAttribute("aria-disabled", ready ? "false" : "true");
+      }
+    });
+    if (bar) {
+      bar.hidden = !(ready && !locked);
+      if (barTime) {
+        barTime.textContent = time ? time.value : "";
+      }
     }
   }
 
@@ -108,7 +155,7 @@
     }
 
     var current = ++requestCounter;
-    setMessage(MESSAGES.loading);
+    setLoading();
     updateReceipt();
 
     var url = api + "?hizmet=" + encodeURIComponent(service.value) + "&tarih=" + encodeURIComponent(day.value);
@@ -143,11 +190,23 @@
     var name = event.target.name;
     if (name === "service" || name === "date") {
       wantedTime = ""; // yeni hizmet ya da gün: saati yeniden bilinçli seç
+      if (name === "date") {
+        var chip = event.target.closest(".day-chip");
+        if (chip && chip.scrollIntoView) {
+          chip.scrollIntoView({ inline: "center", block: "nearest" });
+        }
+      }
       loadSlots();
     } else if (name === "time") {
       updateReceipt();
     }
   });
+
+  // Seçili gün çipi görünür alana gelsin (sayfa yenilenince ya da hata sonrası)
+  var selectedChip = form.querySelector(".day-chip input:checked");
+  if (selectedChip && selectedChip.closest(".day-chip").scrollIntoView) {
+    selectedChip.closest(".day-chip").scrollIntoView({ inline: "center", block: "nearest" });
+  }
 
   loadSlots();
 })();

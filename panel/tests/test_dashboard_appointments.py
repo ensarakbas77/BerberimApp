@@ -45,7 +45,7 @@ class TodaySectionTests(DashboardAppointmentTestCase):
         self.add("yarin", MONDAY + DAYS(days=1), T(9, 0))
         self.add("dun", MONDAY - DAYS(days=1), T(9, 0), Status.COMPLETED)
         response = self.client.get(HOME_URL)
-        self.assertContains(response, "Bugün, 21 Eylül Pazartesi")
+        self.assertContains(response, "Pazartesi, 21 Eylül")
         self.assertEqual([row.pk for row in response.context["todays_rows"]], [done.pk, waiting.pk, late.pk])
         summary = response.context["summary"]
         self.assertEqual((summary.scheduled, summary.completed, summary.no_show, summary.unmarked), (1, 1, 0, 1))
@@ -53,7 +53,7 @@ class TodaySectionTests(DashboardAppointmentTestCase):
         self.assertNotContains(response, "@dun")
 
     def test_the_link_to_all_appointments_is_there(self):
-        self.assertContains(self.client.get(HOME_URL), '<a class="section-head__link" href="/panel/randevular/">Tüm randevular</a>', html=True)
+        self.assertContains(self.client.get(HOME_URL), '<a class="today-head__link" href="/panel/randevular/">Tüm randevular</a>', html=True)
 
     def test_an_empty_day_tells_what_to_do(self):
         self.assertContains(
@@ -70,7 +70,7 @@ class TodaySectionTests(DashboardAppointmentTestCase):
         waiting = self.add("bekleyen", MONDAY, T(13, 0))
         response = self.client.get(HOME_URL)
         self.assertContains(response, f'id="randevu-{waiting.pk}"', count=1)
-        self.assertNotContains(response, "Önceki günlerden işaretlenmeyi bekleyenler")
+        self.assertContains(response, "İşaretlenmeyi bekleyen (1)")  # bugünkü satır bölümde tek kez
 
 
 class EarlierPendingTests(DashboardAppointmentTestCase):
@@ -80,7 +80,7 @@ class EarlierPendingTests(DashboardAppointmentTestCase):
         self.add("tamam", MONDAY - DAYS(days=2), T(10, 0), Status.COMPLETED)
         self.add("iptal", MONDAY - DAYS(days=3), T(10, 0), Status.CANCELLED)
         response = self.client.get(HOME_URL)
-        self.assertContains(response, "Önceki günlerden işaretlenmeyi bekleyenler")
+        self.assertContains(response, "İşaretlenmeyi bekleyen (2)")  # bugünden gelen yok: yalnızca önceki iki gün
         self.assertEqual([row.pk for row in response.context["earlier_rows"]], [newest.pk, oldest.pk])
         self.assertContains(response, "20 Eylül Pazar")  # bu satırlarda tarih de görünür
         self.assertFalse(response.context["earlier_has_more"])
@@ -100,7 +100,7 @@ class EarlierPendingTests(DashboardAppointmentTestCase):
 
     def test_the_section_is_absent_when_nothing_is_waiting(self):
         self.add("tamam", MONDAY - DAYS(days=1), T(10, 0), Status.COMPLETED)
-        self.assertNotContains(self.client.get(HOME_URL), "Önceki günlerden")
+        self.assertNotContains(self.client.get(HOME_URL), "İşaretlenmeyi bekleyen")
 
 
 class LayoutOrderTests(TestCase):
@@ -108,7 +108,7 @@ class LayoutOrderTests(TestCase):
 
     def positions(self, response):
         html = response.content.decode()
-        return html.index('id="today-title"'), html.index('id="publish-title"')
+        return html.index('id="program-title"'), html.index('id="publish-title"')
 
     def test_appointments_come_first_for_a_healthy_published_shop(self):
         freeze(self, NOW)

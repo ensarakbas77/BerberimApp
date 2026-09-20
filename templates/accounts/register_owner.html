@@ -4,8 +4,9 @@
 {% block meta_description %}Berberim'de dükkanını ekle, randevularını tek ekrandan takip et.{% endblock %}
 
 {% block content %}
+<div class="auth-layout">
 <section class="auth">
-  <h1>Dükkan hesabı aç</h1>
+  <h1>Dükkanını Berberim'e ekle</h1>
   <p class="lead">Dükkanını ekle, randevularını tek ekrandan takip et.</p>
   <div class="panel">
     <form method="post" novalidate>
@@ -15,10 +16,12 @@
       {% include "partials/_form_field.html" with field=form.password1 %}
       {% include "partials/_form_field.html" with field=form.password2 %}
       {% include "partials/_form_field.html" with field=form.phone %}
-      <button type="submit" class="btn btn--primary btn--block">Dükkan hesabı aç</button>
+      <button type="submit" class="btn btn--primary btn--block" data-loading-text="Hesap açılıyor…">Dükkan hesabı aç</button>
     </form>
   </div>
   <p class="auth__links">Zaten hesabın var mı? <a href="{% url 'accounts:login' %}">Giriş yap</a></p>
   <p class="auth__links">Randevu almak için <a href="{% url 'accounts:register' %}">müşteri hesabı aç</a></p>
 </section>
+<aside class="auth-aside"><p>Randevularını tek ekrandan yönet.</p></aside>
+</div>
 {% endblock %}

@@ -64,13 +64,14 @@ class ProfileTests(TestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.username, "musteri")
 
-    def test_invalid_input_shows_messages_and_keeps_header_username(self):
+    def test_invalid_input_shows_messages_and_changes_nothing(self):
         response = self.client.post(PROFILE_URL, {"username": "ab", "phone": "12345"})
         self.assertContains(response, USERNAME_FORMAT_MESSAGE)
         self.assertContains(response, PHONE_ERROR)
         # Geçersiz deneme, oturumdaki kullanıcının adını değiştirmemeli.
-        self.assertContains(response, "@musteri")
-        self.assertNotContains(response, "@ab")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.username, "musteri")
+        self.assertContains(response, 'href="/hesap/profil/" aria-current="page"')
 
     def test_owner_can_edit_profile_too(self):
         self.client.logout()
@@ -134,14 +135,15 @@ class HeaderNavigationTests(TestCase):
         self.assertContains(response, "Kayıt ol")
         self.assertNotContains(response, "Çıkış")
 
-    def test_customer_sees_username_menu_with_profile_and_logout(self):
+    def test_customer_sees_profile_and_logout_but_no_username_menu(self):
         make_user(username="ensar_k")
         self.client.login(email="ensar_k@example.com", password=PASSWORD)
         response = self.client.get("/")
-        self.assertContains(response, "@ensar_k")
-        self.assertContains(response, 'class="user-menu"')
-        self.assertContains(response, f'href="{PROFILE_URL}"')
-        self.assertContains(response, "Profil")
+        # Başlıkta kullanıcı menüsü yok; masaüstü menüsünde Profil ve Çıkış, mobilde alt sekme çubuğu var.
+        self.assertNotContains(response, "@ensar_k")
+        self.assertNotContains(response, "user-menu")
+        self.assertContains(response, f'href="{PROFILE_URL}"', count=2)  # başlık menüsü + alt sekme
+        self.assertContains(response, 'class="tabbar"')
         self.assertContains(response, "Çıkış")
         self.assertNotContains(response, "Kayıt ol")
 
@@ -164,11 +166,11 @@ class HeaderNavigationTests(TestCase):
         self.assertIn('method="post"', form)
         self.assertIn("csrfmiddlewaretoken", form)
 
-    def test_header_username_is_escaped(self):
-        # Kullanıcı adı kurallarıyla HTML karakteri zaten giremez; yine de şablon kaçış yapmalı.
+    def test_username_is_escaped_where_it_is_shown(self):
+        # Kullanıcı adı kurallarıyla HTML karakteri zaten giremez; yine de şablon kaçış yapmalı (profil formunda görünür).
         user = make_user(username="musteri")
         User.objects.filter(pk=user.pk).update(username="<b>x</b>")
         self.client.login(email="musteri@example.com", password=PASSWORD)
-        response = self.client.get("/")
+        response = self.client.get(PROFILE_URL)
         self.assertNotContains(response, "<b>x</b>")
         self.assertContains(response, "&lt;b&gt;x&lt;/b&gt;")

@@ -1,7 +1,8 @@
-{% if messages %}
+{% load static %}{% if messages %}
 <div class="messages container">
   {% for message in messages %}
-  <div class="alert alert--{{ message.level_tag }}" role="status">
+  <div class="alert alert--{{ message.level_tag }}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">
+    <svg class="icon alert__icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#{% if message.level_tag == 'error' %}hata{% elif message.level_tag == 'warning' %}uyari{% else %}bilgi{% endif %}"></use></svg>
     <p class="alert__text">{{ message }}</p>
     <button type="button" class="alert__close" data-dismiss aria-label="Mesajı kapat">&times;</button>
   </div>

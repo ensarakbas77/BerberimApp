@@ -5,84 +5,108 @@
 {% block meta_description %}{{ shop.name }} için hizmet, gün ve saat seçip randevunu al.{% endblock %}
 
 {% block content %}
-<p class="back-link"><a href="{{ shop.get_absolute_url }}">{{ shop.name }} sayfasına dön</a></p>
-<h1>Randevu al</h1>
-<p class="lead">{{ shop.name }}</p>
+<div class="has-action-bar">
+  <p class="back-link"><a href="{{ shop.get_absolute_url }}"><svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#sol-ok"></use></svg>{{ shop.name }} sayfasına dön</a></p>
+  <h1>Randevu al</h1>
+  <p class="lead">{{ shop.name }}</p>
 
-{% include "partials/_restriction_box.html" %}
-{% if limit_message %}
-<div class="alert alert--warning form-alert" role="status">
-  <p class="alert__text">{{ limit_message }}</p>
+  {% include "partials/_restriction_box.html" %}
+  {% if limit_message %}
+  <div class="alert alert--warning form-alert" role="status">
+    <svg class="icon alert__icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#uyari"></use></svg>
+    <p class="alert__text">{{ limit_message }}</p>
+  </div>
+  {% endif %}
+  {% if form.non_field_errors %}
+  <div class="alert alert--error form-alert" role="alert">
+    <svg class="icon alert__icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#hata"></use></svg>
+    <div class="alert__text">{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>
+  </div>
+  {% endif %}
+
+  <form method="post" novalidate class="booking-form" id="booking-form" data-booking-form
+        data-api="{% url 'bookings:available_slots' shop.slug %}" data-selected-time="{{ selected_time }}">
+    {% csrf_token %}
+    <div class="booking-layout">
+      <div class="booking-steps">
+        <fieldset class="booking-step">
+          <legend><span class="step-num" aria-hidden="true">1</span>Hizmet</legend>
+          <div class="choice-list">
+            {% for service in services %}
+            <label class="choice">
+              <input type="radio" name="service" value="{{ service.pk }}" data-name="{{ service.name }}" data-duration="{{ service.duration_minutes }}"{% if shop.show_prices %} data-price="{{ service.price|price }}"{% endif %}{% if service.pk == selected_service_id %} checked{% endif %}>
+              <span class="choice__body">
+                <span class="choice__name">{{ service.name }}</span>
+                <span class="choice__meta tabular">{{ service.duration_minutes }} dk</span>
+                {% if shop.show_prices %}<span class="choice__price tabular">{{ service.price|price }}</span>{% endif %}
+              </span>
+            </label>
+            {% endfor %}
+          </div>
+          {% for error in form.service.errors %}<p class="field__error">{{ error }}</p>{% endfor %}
+        </fieldset>
+
+        <fieldset class="booking-step">
+          <legend><span class="step-num" aria-hidden="true">2</span>Gün</legend>
+          <div class="day-strip">
+            {% for day in days %}
+            <label class="day-chip{% if day.is_today %} day-chip--today{% endif %}{% if day.is_closed %} day-chip--closed{% endif %}">
+              <input type="radio" name="date" value="{{ day.date|date:'Y-m-d' }}" data-label="{{ day.label }}"{% if day.is_closed %} disabled{% endif %}{% if day.date|date:'Y-m-d' == selected_date %} checked{% endif %}>
+              <span class="day-chip__body">
+                <span class="day-chip__dow">{% if day.is_today %}Bugün{% else %}{{ day.abbreviation }}{% endif %}</span>
+                <span class="day-chip__num tabular">{{ day.date|date:"j" }}</span>
+                {% if day.is_closed %}<span class="day-chip__note">Kapalı</span>{% endif %}
+              </span>
+            </label>
+            {% endfor %}
+          </div>
+          {% for error in form.date.errors %}<p class="field__error">{{ error }}</p>{% endfor %}
+        </fieldset>
+
+        <fieldset class="booking-step">
+          <legend><span class="step-num" aria-hidden="true">3</span>Saat</legend>
+          <div id="slot-area" class="slot-area" aria-live="polite">
+            <p class="slot-area__message">Saatleri görmek için hizmet ve gün seç.</p>
+          </div>
+          <noscript><p class="field__error">Saatleri görmek için JavaScript gerekir. Tarayıcında JavaScript'i açıp sayfayı yenile.</p></noscript>
+          {% for error in form.time.errors %}<p class="field__error">{{ error }}</p>{% endfor %}
+        </fieldset>
+
+        <div class="booking-step">
+          <label class="booking-step__title" for="{{ form.note.id_for_label }}"><span class="step-num" aria-hidden="true">4</span>Not (isteğe bağlı)</label>
+          {% if form.note.help_text %}<span class="field__hint" id="{{ form.note.auto_id }}_hint">{{ form.note.help_text }}</span>{% endif %}
+          {{ form.note }}
+          {% if form.note.errors %}
+          <div id="{{ form.note.auto_id }}_error">
+            {% for error in form.note.errors %}<p class="field__error">{{ error }}</p>{% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <section class="receipt booking-receipt" aria-labelledby="receipt-title">
+        <div class="receipt__body">
+          <h2 id="receipt-title" class="visually-hidden">Randevu fişi</h2>
+          <p class="receipt__shop">{{ shop.name }}</p>
+          <p class="receipt__line" data-receipt-service>Hizmet seç</p>
+        </div>
+        <div class="receipt__perf" aria-hidden="true"></div>
+        <div class="receipt__body">
+          <p class="receipt__date tabular" data-receipt-date>Gün seç</p>
+          <p class="receipt__time receipt__time--empty tabular" data-receipt-time>Saat seç</p>
+          {% if blocked %}<p id="restriction-note" class="receipt__note">{{ restriction.message }}</p>{% endif %}
+          <button type="submit" class="btn btn--primary btn--block" data-submit{% if limit_message or blocked %} data-locked disabled aria-disabled="true"{% endif %}{% if blocked %} aria-describedby="restriction-note"{% endif %} data-loading-text="Onaylanıyor…">Randevuyu onayla</button>
+        </div>
+      </section>
+    </div>
+  </form>
 </div>
-{% endif %}
-{% if form.non_field_errors %}
-<div class="alert alert--error form-alert" role="alert">
-  {% for error in form.non_field_errors %}<p class="alert__text">{{ error }}</p>{% endfor %}
+
+{# Mobilde saat seçilince beliren alt eylem çubuğu: fişteki butonla aynı formu gönderir #}
+<div class="action-bar" data-booking-bar hidden>
+  <span class="action-bar__slot"><span class="first-slot tabular" data-bar-time></span></span>
+  <button type="submit" form="booking-form" class="btn btn--primary" data-submit{% if limit_message or blocked %} data-locked disabled aria-disabled="true"{% endif %} data-loading-text="Onaylanıyor…">Randevuyu onayla</button>
 </div>
-{% endif %}
-
-<form method="post" novalidate class="booking-form" data-booking-form
-      data-api="{% url 'bookings:available_slots' shop.slug %}" data-selected-time="{{ selected_time }}">
-  {% csrf_token %}
-
-  <fieldset class="booking-step">
-    <legend>Hizmet</legend>
-    <div class="choice-list">
-      {% for service in services %}
-      <label class="choice">
-        <input type="radio" name="service" value="{{ service.pk }}" data-name="{{ service.name }}" data-duration="{{ service.duration_minutes }}"{% if service.pk == selected_service_id %} checked{% endif %}>
-        <span class="choice__body">
-          <span class="choice__name">{{ service.name }}</span>
-          <span class="choice__meta tabular">{{ service.duration_minutes }} dk</span>
-          {% if shop.show_prices %}<span class="choice__price tabular">{{ service.price|price }}</span>{% endif %}
-        </span>
-      </label>
-      {% endfor %}
-    </div>
-    {% for error in form.service.errors %}<p class="field__error">{{ error }}</p>{% endfor %}
-  </fieldset>
-
-  <fieldset class="booking-step">
-    <legend>Gün</legend>
-    <div class="day-strip">
-      {% for day in days %}
-      <label class="day-chip{% if day.is_closed %} day-chip--closed{% endif %}">
-        <input type="radio" name="date" value="{{ day.date|date:'Y-m-d' }}" data-label="{{ day.label }}"{% if day.is_closed %} disabled{% endif %}{% if day.date|date:'Y-m-d' == selected_date %} checked{% endif %}>
-        <span class="day-chip__body">
-          <span class="day-chip__dow">{% if day.is_today %}Bugün{% else %}{{ day.abbreviation }}{% endif %}</span>
-          <span class="day-chip__num tabular">{{ day.date|date:"j" }}</span>
-          {% if day.is_closed %}<span class="day-chip__note">Kapalı</span>{% endif %}
-        </span>
-      </label>
-      {% endfor %}
-    </div>
-    {% for error in form.date.errors %}<p class="field__error">{{ error }}</p>{% endfor %}
-  </fieldset>
-
-  <fieldset class="booking-step">
-    <legend>Saat</legend>
-    <div id="slot-area" class="slot-area" aria-live="polite">
-      <p class="slot-area__message">Saatleri görmek için hizmet ve gün seç.</p>
-    </div>
-    <noscript><p class="field__error">Saatleri görmek için JavaScript gerekir. Tarayıcında JavaScript'i açıp sayfayı yenile.</p></noscript>
-    {% for error in form.time.errors %}<p class="field__error">{{ error }}</p>{% endfor %}
-  </fieldset>
-
-  {% include "partials/_form_field.html" with field=form.note %}
-
-  <section class="receipt" aria-labelledby="receipt-title">
-    <div class="receipt__stripe" aria-hidden="true"></div>
-    <div class="receipt__body">
-      <h2 id="receipt-title" class="receipt__title">Randevu fişi</h2>
-      <p class="receipt__shop">{{ shop.name }}</p>
-      <p class="receipt__line" data-receipt-service>Hizmet seç</p>
-      <p class="receipt__line tabular" data-receipt-when>Gün ve saat seç</p>
-    </div>
-  </section>
-
-  <button type="submit" class="btn btn--primary btn--block" data-submit{% if limit_message or blocked %} data-locked disabled aria-disabled="true"{% endif %}{% if blocked %} aria-describedby="restriction-note"{% endif %}>Randevuyu onayla</button>
-  {% if blocked %}<p id="restriction-note" class="field__hint">Randevu alma {{ restriction.until|date:"j F" }} tarihine kadar kapalı. Sebep yukarıda yazıyor.</p>{% endif %}
-</form>
 {% endblock %}
 
 {% block extra_js %}

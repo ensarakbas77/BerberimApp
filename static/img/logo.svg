@@ -1,23 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 40" width="150" height="40" role="img" aria-label="Berberim">
-  <defs>
-    <pattern id="pole" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
-      <rect y="0" width="16" height="4" fill="#D62839"/>
-      <rect y="4" width="16" height="4" fill="#FFFFFF"/>
-      <rect y="8" width="16" height="4" fill="#1F4FD8"/>
-      <rect y="12" width="16" height="4" fill="#FFFFFF"/>
-    </pattern>
-    <clipPath id="pill">
-      <rect x="6" y="4" width="12" height="32" rx="6"/>
-    </clipPath>
-  </defs>
-  <g id="mark">
-    <rect x="6" y="4" width="12" height="32" rx="6" fill="#FFFFFF"/>
-    <g clip-path="url(#pill)">
-      <rect x="0" y="0" width="24" height="40" fill="url(#pole)"/>
-    </g>
-    <rect x="6" y="4" width="12" height="32" rx="6" fill="none" stroke="#14213D" stroke-width="1.5"/>
-    <rect x="4" y="0.5" width="16" height="4.5" rx="1.5" fill="#14213D"/>
-    <rect x="4" y="35" width="16" height="4.5" rx="1.5" fill="#14213D"/>
-  </g>
-  <text x="34" y="29" fill="#14213D" font-family="Archivo, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="26" font-weight="800" font-stretch="75%" letter-spacing="-0.26">Berberim</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 168 32" width="168" height="32" role="img" aria-label="Berberim">
+  <!-- Limon damlası + yazı. Unbounded yüklüyse onunla çizilir; <img> olarak kullanılırsa sistem yazı tipine düşer.
+       Başlıktaki logo HTML ile çizilir (templates/partials/_header.html): i harfinin noktası limon damla. -->
+  <circle cx="14" cy="16" r="9.5" fill="#FFD43B" stroke="#17332A" stroke-width="2"/>
+  <text x="32" y="24" fill="#17332A" font-family="Unbounded, Figtree, system-ui, sans-serif" font-size="22" font-weight="600" letter-spacing="-0.4">Berberim</text>
 </svg>

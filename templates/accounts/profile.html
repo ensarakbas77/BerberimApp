@@ -10,8 +10,8 @@
       {% csrf_token %}
       <div class="field">
         <label class="field__label" for="profile-email">E-posta</label>
-        <input class="input" id="profile-email" type="email" value="{{ request.user.email }}" disabled aria-describedby="profile-email_hint">
         <span class="field__hint" id="profile-email_hint">E-posta değiştirilemez. Yalnızca sen görürsün.</span>
+        <input class="input" id="profile-email" type="email" value="{{ request.user.email }}" disabled aria-describedby="profile-email_hint">
       </div>
       <div class="field">
         <span class="field__label">Hesap türü</span>
@@ -19,7 +19,16 @@
       </div>
       {% include "partials/_form_field.html" with field=form.username %}
       {% include "partials/_form_field.html" with field=form.phone %}
-      <button type="submit" class="btn btn--primary btn--block">Kaydet</button>
+      <button type="submit" class="btn btn--primary btn--block" data-loading-text="Kaydediliyor…">Kaydet</button>
+    </form>
+  </div>
+
+  <h2 class="section-title">Oturum</h2>
+  <div class="panel">
+    <p>Bu cihazda oturumunu kapat.</p>
+    <form method="post" action="{% url 'accounts:logout' %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn--secondary btn--block">Çıkış yap</button>
     </form>
   </div>
 </section>

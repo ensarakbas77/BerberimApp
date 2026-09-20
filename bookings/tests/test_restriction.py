@@ -251,7 +251,11 @@ class BookingPageTests(RestrictionTestCase):
         self.assertContains(response, message)
         self.assertContains(response, '<div class="alert alert--error form-alert" role="alert">')
         self.assertContains(response, 'data-submit data-locked disabled aria-disabled="true" aria-describedby="restriction-note"')
-        self.assertContains(response, "Randevu alma 12 Ekim tarihine kadar kapalı. Sebep yukarıda yazıyor.")
+        # Sebep fişin içinde de yazılır (FRONTEND-TASARIM.md §10.4)
+        self.assertContains(
+            response,
+            '<p id="restriction-note" class="receipt__note">Son 90 günde 2 randevuna gelmediğin için 12 Ekim&#x27;e kadar yeni randevu alamazsın.</p>',
+        )
 
     def test_blocked_hides_the_count_limit_message(self):
         make_appointment(self.shop, self.customer, self.service, MONDAY + DAYS(days=1), T(10, 0))  # dükkan limiti dolu
@@ -265,7 +269,7 @@ class BookingPageTests(RestrictionTestCase):
         self.block()
         response = self.client.post(self.url, self.post_data())
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "12 Ekim&#x27;e kadar yeni randevu alamazsın.", count=2)  # ileti + kutu
+        self.assertContains(response, "12 Ekim&#x27;e kadar yeni randevu alamazsın.", count=3)  # ileti, üst kutu, fişteki not
         self.assertFalse(Appointment.objects.filter(customer=self.customer, status=Status.SCHEDULED).exists())
 
     def test_an_expired_penalty_leaves_only_the_warning(self):

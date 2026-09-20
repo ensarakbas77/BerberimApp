@@ -1,0 +1,1190 @@
+/* Sayfaya özgü düzenlemeler (FRONTEND-TASARIM.md §14) */
+
+/* ===== Ana sayfa (§10.1) ===== */
+.home-grid {
+  display: grid;
+  gap: var(--s-6);
+}
+
+.home-grid > * {
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .home-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: var(--s-7);
+  }
+}
+
+.home-title {
+  margin-bottom: var(--s-3);
+  font-size: clamp(2.25rem, 9vw, 4rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.home-intro .lead {
+  margin-bottom: var(--s-5);
+}
+
+.search__row {
+  display: flex;
+  gap: var(--s-2);
+}
+
+.search__row .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.search__btn {
+  flex: none;
+  min-width: 56px;
+  padding: 0 var(--s-4);
+}
+
+.home-open h2 {
+  margin-top: 0;
+}
+
+.home-open__more {
+  margin: var(--s-4) 0 0;
+}
+
+.cta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  margin-top: var(--s-7);
+  padding: var(--s-5);
+  border-radius: var(--r-lg);
+  background: var(--green-tint);
+}
+
+.cta h2,
+.cta p {
+  margin: 0;
+}
+
+.cta h2 {
+  margin-bottom: var(--s-1);
+}
+
+@media (min-width: 640px) {
+  .cta {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.owner-panel {
+  margin-top: var(--s-6);
+}
+
+/* ===== Berberler listesi (§10.2) ===== */
+.filters {
+  display: grid;
+  gap: var(--s-3);
+  margin: var(--s-4) 0 var(--s-5);
+}
+
+.filters .field {
+  margin: 0;
+}
+
+.filters__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.chip--toggle:has(input:checked) {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #fff;
+}
+
+.chip--toggle:has(input:focus-visible) {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.filters select.input {
+  width: auto;
+  min-height: var(--tap);
+  padding: 0 40px 0 var(--s-4);
+  border-radius: var(--r-pill);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.result-count {
+  margin: 0 0 var(--s-3);
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+/* ===== Dükkan detayı (§10.3) ===== */
+.back-link {
+  margin: 0 0 var(--s-2);
+}
+
+.back-link a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  min-height: var(--tap);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.back-link a:hover {
+  text-decoration: underline;
+}
+
+.shop-detail {
+  display: grid;
+  gap: var(--s-4);
+}
+
+.shop-detail > * {
+  min-width: 0;
+}
+
+.shop-head h1 {
+  margin-bottom: var(--s-2);
+}
+
+.shop-head__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.booking-box__label {
+  margin: 0 0 var(--s-2);
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.booking-box__slot {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin: 0 0 var(--s-4);
+}
+
+.booking-box__slot:last-child {
+  margin-bottom: 0;
+}
+
+.first-slot--lg {
+  min-height: 44px;
+  padding: 0 20px;
+  font-size: 22px;
+}
+
+.booking-box__when {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+.booking-box__none {
+  margin: 0 0 var(--s-4);
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+/* Mobilde "Randevu al" alt eylem çubuğunda; kutudaki kopyası yalnızca masaüstünde görünür */
+@media (max-width: 1023px) {
+  .booking-box__cta {
+    display: none;
+  }
+
+  .booking-box__slot,
+  .booking-box__none {
+    margin-bottom: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .shop-detail {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-rows: auto 1fr;
+    grid-template-areas: "head aside" "body aside";
+    column-gap: var(--s-7);
+    align-items: start;
+  }
+
+  .shop-head {
+    grid-area: head;
+  }
+
+  .shop-aside {
+    grid-area: aside;
+    position: sticky;
+    top: calc(var(--header-h) + var(--s-4));
+  }
+
+  .shop-body {
+    grid-area: body;
+  }
+}
+
+.detail-section {
+  margin-bottom: var(--s-6);
+}
+
+.detail-section h2 {
+  margin-bottom: var(--s-3);
+}
+
+.detail-subtitle {
+  margin: var(--s-4) 0 var(--s-2);
+  font-size: 16px;
+}
+
+.list-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+
+.list-rows__item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border-top: 1px solid var(--line);
+}
+
+.list-rows__item:first-child {
+  border-top: 0;
+}
+
+.list-rows__name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.list-rows__price {
+  min-width: 4.5rem;
+  text-align: right;
+}
+
+.closure-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.closure-list li {
+  padding: var(--s-1) 0;
+}
+
+.closure-list__note {
+  margin-left: var(--s-2);
+  color: var(--ink-2);
+}
+
+.hours-table__label {
+  margin-left: var(--s-2);
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hours-table__closed {
+  color: var(--ink-2);
+}
+
+.detail-address {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  margin: var(--s-3) 0;
+}
+
+.detail-address .icon {
+  margin-top: 2px;
+}
+
+.detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin: 0 0 var(--s-3);
+}
+
+.detail-phone {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.detail-phone a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+}
+
+.shop-description {
+  max-width: 68ch;
+  overflow-wrap: anywhere;
+}
+
+.action-bar__slot {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.action-bar__label {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+/* ===== Hesap sayfaları (§10.5) ===== */
+.auth-layout {
+  display: grid;
+  gap: var(--s-5);
+}
+
+.auth-layout > * {
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .auth-layout {
+    grid-template-columns: 420px minmax(0, 1fr);
+    gap: var(--s-7);
+    align-items: start;
+  }
+}
+
+.auth {
+  max-width: 420px;
+}
+
+.auth .panel {
+  margin-bottom: var(--s-4);
+}
+
+.auth__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--s-2);
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.auth__links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+}
+
+.auth-aside {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .auth-aside {
+    display: flex;
+    align-items: flex-end;
+    min-height: 320px;
+    padding: var(--s-6);
+    border-radius: var(--r-lg);
+    background: var(--green-tint);
+    color: var(--green-ink);
+  }
+
+  .auth-aside p {
+    max-width: 18ch;
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+}
+
+/* ===== Hata sayfaları (§10.10) ===== */
+.error-page {
+  max-width: 680px;
+  padding-block: var(--s-6);
+}
+
+.error-page__title {
+  font-size: clamp(2rem, 8vw, 3.25rem);
+  line-height: 1.1;
+}
+
+.error-page .lead {
+  margin-bottom: var(--s-5);
+}
+
+/* ===== Randevu alma (§10.4) ===== */
+.booking-layout {
+  display: grid;
+  gap: var(--s-5);
+}
+
+.booking-layout > * {
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .booking-layout {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: var(--s-7);
+    align-items: start;
+  }
+
+  .booking-receipt {
+    position: sticky;
+    top: calc(var(--header-h) + var(--s-4));
+  }
+}
+
+.booking-steps {
+  max-width: 720px;
+}
+
+.booking-step {
+  min-width: 0;
+  margin: 0 0 var(--s-5);
+  padding: 0;
+  border: 0;
+}
+
+.booking-step legend,
+.booking-step__title {
+  display: block;
+  margin: 0 0 var(--s-3);
+  padding: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Adımlar gerçekten sıralı: numara Unbounded, ink-2 */
+.step-num {
+  display: inline-block;
+  min-width: 1.5em;
+  color: var(--ink-2);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.booking-receipt .btn {
+  margin-top: var(--s-4);
+}
+
+.receipt__note {
+  margin: var(--s-3) 0 0;
+  color: var(--red);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ===== Randevularım (§10.6) ===== */
+html.js .panel-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.segmented {
+  margin: var(--s-4) 0 var(--s-5);
+}
+
+.appointment-list {
+  display: grid;
+  gap: var(--s-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.appointment {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  scroll-margin-top: calc(var(--header-h) + var(--s-4));
+}
+
+.appointment--new {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 1px var(--ink);
+}
+
+.appointment__main {
+  display: flex;
+  gap: var(--s-4);
+  padding: var(--s-4) var(--s-5);
+}
+
+.appointment__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.appointment__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.appointment__shop {
+  margin: 0 0 var(--s-1);
+  font-size: 19px;
+  overflow-wrap: anywhere;
+}
+
+.appointment__shop a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.appointment__shop a:hover {
+  text-decoration: underline;
+}
+
+.appointment__service,
+.appointment__when {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--s-3);
+  margin: 0 0 var(--s-1);
+}
+
+.appointment__when {
+  font-weight: 600;
+}
+
+.appointment__note,
+.appointment__info {
+  margin: var(--s-2) 0 0;
+  color: var(--ink-2);
+}
+
+.appointment__notice {
+  margin: var(--s-3) 0 0;
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-md);
+}
+
+.appointment__notice--danger {
+  background: var(--red-tint);
+  color: var(--red);
+  font-weight: 600;
+}
+
+.appointment__foot {
+  padding: var(--s-3) var(--s-5);
+  border-top: 2px dashed var(--line);
+}
+
+.appointment__foot .appointment__info {
+  margin: 0;
+}
+
+/* Sessiz tehlikeli buton kartın metniyle hizalı dursun */
+.appointment__foot .btn--danger {
+  margin-left: calc(var(--s-3) * -1);
+}
+
+/* ===== Sahip paneli (§9.3, §10.7, §10.8, §10.9) ===== */
+.panel-layout {
+  display: grid;
+  gap: var(--s-4);
+}
+
+.panel-layout > * {
+  min-width: 0;
+}
+
+.panel-layout--single {
+  max-width: 760px;
+}
+
+.panel-side {
+  display: none;
+}
+
+.panel-chips {
+  margin-bottom: var(--s-2);
+}
+
+@media (min-width: 1024px) {
+  .panel-layout:not(.panel-layout--single) {
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: var(--s-7);
+    align-items: start;
+  }
+
+  .panel-side {
+    display: block;
+    position: sticky;
+    top: calc(var(--header-h) + var(--s-4));
+  }
+
+  .panel-chips {
+    display: none;
+  }
+}
+
+.panel-side__list {
+  margin: 0 0 var(--s-2);
+  padding: 0;
+  list-style: none;
+}
+
+.panel-side__list a {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: 0 var(--s-3);
+  border-radius: var(--r-md);
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.panel-side__list a:hover {
+  background: var(--neutral-tint);
+}
+
+.panel-side__list a[aria-current="page"] {
+  background: var(--ink);
+  color: #fff;
+}
+
+.panel-side__title {
+  margin: var(--s-4) 0 var(--s-1);
+  padding: 0 var(--s-3);
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.panel-side__foot {
+  margin-top: var(--s-5);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+}
+
+/* Bugün */
+.today-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-1) var(--s-4);
+  margin-bottom: var(--s-3);
+}
+
+.today-head__date {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.today-head__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  font-weight: 600;
+}
+
+.counters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin: 0 0 var(--s-5);
+  padding: 0;
+  list-style: none;
+}
+
+.counters .badge {
+  padding: 4px 10px;
+  font-size: 14px;
+}
+
+.pending {
+  margin-bottom: var(--s-6);
+  padding: var(--s-4);
+  border-radius: var(--r-lg);
+  background: var(--amber-tint);
+}
+
+.pending h2 {
+  margin-top: 0;
+}
+
+.pending__more {
+  margin: var(--s-3) 0 0;
+}
+
+.dashboard-section {
+  margin-bottom: var(--s-6);
+}
+
+.setup {
+  display: grid;
+  gap: var(--s-4);
+  margin-bottom: var(--s-6);
+}
+
+@media (min-width: 640px) {
+  .setup {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+.checklist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checklist__item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--line);
+}
+
+.checklist__item:first-child {
+  border-top: 0;
+}
+
+.checklist__mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1.5px solid var(--ink-2);
+  border-radius: 50%;
+  color: #fff;
+}
+
+.checklist__mark .icon {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.5;
+}
+
+.checklist__item--done .checklist__mark {
+  border-color: var(--green);
+  background: var(--green);
+}
+
+.checklist__label {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.checklist__optional {
+  color: var(--ink-2);
+  font-weight: 400;
+}
+
+.checklist__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  font-weight: 600;
+}
+
+/* Program satırı ayrıntıları */
+.schedule-row__when {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.schedule-row__end {
+  color: var(--ink-2);
+  font-size: 13px;
+}
+
+.schedule-row__body {
+  min-width: 0;
+}
+
+.schedule-row__head .badge {
+  flex: none;
+}
+
+.schedule--pending {
+  border-color: transparent;
+}
+
+/* Randevu listesi */
+.day-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-4);
+  margin-bottom: var(--s-2);
+}
+
+.day-nav__buttons,
+.day-nav__picker {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.day-nav__buttons .btn {
+  min-width: var(--tap);
+  padding: 0 14px;
+}
+
+.day-nav__picker .input {
+  width: auto;
+}
+
+.day-title {
+  margin: var(--s-2) 0 var(--s-3);
+  font-size: 22px;
+}
+
+.status-filter {
+  margin-bottom: var(--s-2);
+}
+
+/* Randevu detayı */
+.detail-receipt {
+  margin-bottom: var(--s-5);
+}
+
+.detail-receipt__user {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.detail-receipt__time {
+  margin: 0 0 var(--s-2);
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.detail-receipt .schedule-row__head {
+  margin-bottom: var(--s-1);
+}
+
+.detail-panel {
+  margin-bottom: var(--s-5);
+}
+
+.slot-picker {
+  margin-bottom: var(--s-5);
+}
+
+.slot-picker__fields {
+  display: grid;
+  gap: 0 var(--s-4);
+}
+
+@media (min-width: 640px) {
+  .slot-picker__fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Dükkan ayarları */
+.form-panel {
+  max-width: 640px;
+}
+
+.settings-form {
+  max-width: 640px;
+}
+
+.form-section {
+  margin-bottom: var(--s-4);
+}
+
+.form-section h2 {
+  margin-top: 0;
+}
+
+.form-section .map {
+  margin-bottom: var(--s-3);
+}
+
+.settings-form__submit {
+  max-width: 320px;
+}
+
+.publish-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--s-3);
+  margin: 0 0 var(--s-3);
+}
+
+.publish-line a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+}
+
+.section-title {
+  margin: var(--s-6) 0 var(--s-3);
+  font-size: 20px;
+}
+
+.row-list {
+  margin: 0 0 var(--s-5);
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3) var(--s-4);
+  padding: var(--s-4);
+  border-top: 1px solid var(--line);
+}
+
+.row:first-child {
+  border-top: 0;
+}
+
+.row__main {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.row__title {
+  margin: 0 0 var(--s-1);
+  font-family: var(--font-body);
+  font-size: 18px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.row--inactive .row__title {
+  color: var(--ink-2);
+}
+
+.row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-1) var(--s-4);
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+/* Çalışma saatleri: mobilde gün kartları, masaüstünde tablo (§10.9) */
+.hours {
+  display: grid;
+  gap: var(--s-3);
+  margin-bottom: var(--s-5);
+}
+
+.hours-head {
+  display: none;
+}
+
+.hours-day {
+  min-width: 0;
+  margin: 0;
+}
+
+.hours-day__name {
+  float: left;
+  width: 100%;
+  margin: 0 0 var(--s-2);
+  padding: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.hours-day__name + * {
+  clear: both;
+}
+
+.hours-day__times,
+.hours-day__break-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 var(--s-3);
+}
+
+.hours-day__times .field,
+.hours-day__break-fields .field {
+  margin-bottom: var(--s-3);
+}
+
+.hours-day__break summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  color: var(--green-ink);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hours-day__break-fields {
+  padding-top: var(--s-2);
+}
+
+.hours-day__error {
+  margin: 0;
+}
+
+.hours__submit {
+  max-width: 320px;
+}
+
+@media (min-width: 1024px) {
+  .hours {
+    --hours-name: 128px;
+    --hours-cols: var(--hours-name) 92px minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    overflow: hidden;
+  }
+
+  .hours-head,
+  .hours-day {
+    display: grid;
+    grid-template-columns: var(--hours-cols);
+    gap: var(--s-3);
+    padding: var(--s-3) var(--s-4);
+  }
+
+  .hours-head {
+    background: var(--neutral-tint);
+    color: var(--ink-2);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .hours-day {
+    position: relative;
+    align-items: start;
+    border: 0;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+  }
+
+  .hours-day__name {
+    position: absolute;
+    top: calc(var(--s-3) + 12px);
+    left: var(--s-4);
+    float: none;
+    width: var(--hours-name);
+    margin: 0;
+  }
+
+  .hours-day__open {
+    grid-column: 2;
+    display: flex;
+    align-items: center;
+    min-height: var(--tap);
+  }
+
+  .hours-day__times {
+    grid-column: 3;
+  }
+
+  .hours-day__break {
+    grid-column: 4;
+  }
+
+  /* Sütun başlığı "Mola" zaten var; mola kayıtlıysa alanlar doğrudan görünür */
+  .hours-day__break[open] > summary {
+    display: none;
+  }
+
+  .hours-day__times,
+  .hours-day__break-fields {
+    gap: var(--s-2);
+  }
+
+  .hours-day__times .input,
+  .hours-day__break-fields .input {
+    padding-inline: 10px 6px;
+  }
+
+  /* Etiketler tablo başlığında; satırlarda yalnızca ekran okuyucu için */
+  .hours-day__times .field__label,
+  .hours-day__break-fields .field__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .hours-day__times .field,
+  .hours-day__break-fields .field {
+    margin-bottom: 0;
+  }
+
+  .hours-day__error {
+    grid-column: 2 / -1;
+  }
+}
+
+/* ===== Harita denetimleri (Leaflet varsayılanı 30 px; dokunma alanı 44 px) ===== */
+.map.leaflet-container .leaflet-bar a {
+  width: var(--tap);
+  height: var(--tap);
+  line-height: var(--tap);
+}

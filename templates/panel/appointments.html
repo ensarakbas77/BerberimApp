@@ -26,29 +26,29 @@
 {% endif %}
 
 <nav class="status-filter" aria-label="Durum süzgeci">
-  <ul>
+  <ul class="chip-row">
     {% for item in filters %}
-    <li><a href="{{ item.url }}"{% if item.active %} aria-current="true"{% endif %}>{{ item.label }}</a></li>
+    <li><a class="chip" href="{{ item.url }}"{% if item.active %} aria-current="true"{% endif %}>{{ item.label }}</a></li>
     {% endfor %}
   </ul>
 </nav>
 
 {% if rows %}
-<ul class="appointment-list">
+<ul class="schedule">
   {% for appointment in rows %}
   {% include "panel/_appointment_row.html" with return_to="liste" show_date=pending_mode %}
   {% endfor %}
 </ul>
 {% elif pending_mode %}
-<div class="panel">
+<div class="empty">
   <p>İşaretlenmeyi bekleyen randevu yok. Geçmiş randevuların hepsi işaretli.</p>
 </div>
 {% elif has_day_rows %}
-<div class="panel">
+<div class="empty">
   <p>Bu süzgece uyan randevu yok. Süzgeci "Hepsi" olarak değiştir.</p>
 </div>
 {% else %}
-<div class="panel">
+<div class="empty">
   <p>Bu gün için randevu yok. Çalışma saatlerin açık olduğu sürece müşteriler boş saatlerini görebilir.</p>
 </div>
 {% endif %}
