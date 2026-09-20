@@ -498,7 +498,7 @@ berberim/
 ├── bookings/                  # Appointment; müsaitlik ve randevu servisleri; müşteri view'ları; API
 ├── panel/                     # Dükkan sahibi paneli view'ları (model yok)
 ├── FRONTEND-TASARIM.md        # arayüz ve tasarım sistemi (§9'un yerine geçer)
-├── docs/arayuz-envanter.md    # arayüz yenilemesinin Adım 0 envanteri
+├── docs/                      # kod dokümantasyonu (README.md dizin ve plan) ve arayuz-envanter.md (Adım 0 envanteri)
 ├── templates/
 │   ├── base.html
 │   ├── 404.html, 403.html, 403_csrf.html, 500.html

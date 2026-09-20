@@ -107,7 +107,7 @@ Ek paket kullanılmaz: `requirements.txt` yalnızca Django, psycopg, dj-database
 | `bookings/` | Randevu modeli; müsaitlik, randevu oluşturma, müşteri iptali, "İlk boş saat", sahip işlemleri ve Gelmedi kuralı (`services.py`); randevu sayfası, Randevularım ve müsaitlik API'si |
 | `templates/`, `static/` | Şablonlar, CSS, JS ve görseller (ayrıntı için aşağıdaki "Arayüz") |
 | `scripts/` | `migrate-production.ps1`: canlı veritabanına migrate, yönetici hesabı ve demo verisi |
-| `docs/` | Arayüz yenilemesinin Adım 0 envanteri (tarihsel kayıt) |
+| `docs/` | Kod ve sistem dokümantasyonu: mimari, veri modeli, modül kılavuzları ([docs/README.md](docs/README.md) dizin ve plan); arayüz envanteri (tarihsel kayıt) |
 | `PROJECT.md`, `FRONTEND-TASARIM.md`, `CLAUDE.md` | Proje planı ve karar günlüğü, tasarım sistemi, Claude Code'un oturum hafızası |
 
 ## Arayüz
