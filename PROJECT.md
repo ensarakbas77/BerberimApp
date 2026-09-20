@@ -2,7 +2,7 @@
 
 > **Bu dosya projenin tek kaynak belgesidir.** Claude Code her fazdan önce bu dosyayı okur.
 > Bir karar değişirse önce bu dosya güncellenir, sonra kod yazılır (bkz. §15 Karar günlüğü).
-> Son güncelleme: 19 Eylül 2026
+> Son güncelleme: 20 Eylül 2026
 
 ## İçindekiler
 
@@ -459,80 +459,13 @@ Planlandı 6   Tamamlandı 3   Gelmedi 1
 
 ## 9. Arayüz ve tasarım sistemi
 
-### 9.1 Konsept: "Mahalle berberi, dijital tabelada"
-Açık, ferah bir zemin; üzerinde berber direğinin kırmızısı ve kobalt mavisi gibi canlı renkler ile vintage berber koltuklarını hatırlatan nane tonu. Arayüz sade ve hızlı; kişiliği tek bir imza öğe (direk şeridi) ve tabelayı andıran dar, kalın başlıklar taşır.
+**Arayüz ve tasarım sistemi [FRONTEND-TASARIM.md](FRONTEND-TASARIM.md)'de tanımlıdır.** Bu bölümün önceki içeriği (renkler, tipografi, yerleşim, bileşenler, imza öğe, hareket, erişilebilirlik listesi, kaçınılacaklar) 20 Eylül 2026'da onun yerine geçti; iki belge çelişirse FRONTEND-TASARIM.md geçerlidir. Kapsam yalnızca ön yüzdür: backend, URL'ler, şablon adları, context, form alanları ve API değişmez (§15).
 
-### 9.2 Renk tokenları (`static/css/tokens.css`)
-
-| Token | Hex | Adı | Kullanım |
-|---|---|---|---|
-| `--bg` | `#F5F8FB` | Fayans | Sayfa zemini |
-| `--surface` | `#FFFFFF` | Önlük beyazı | Paneller, formlar |
-| `--ink` | `#14213D` | Lacivert mürekkep | Metin ve başlıklar |
-| `--ink-2` | `#4A5670` | | İkincil metin |
-| `--line` | `#D9E1EC` | | Kenarlıklar, ayırıcılar |
-| `--cobalt` | `#1F4FD8` | Kobalt | Birincil buton, link, seçili saat |
-| `--cobalt-tint` | `#E6EDFC` | | Seçili zeminler, "Planlandı" rozeti |
-| `--pole-red` | `#D62839` | Direk kırmızısı | **Yalnızca marka:** logo ve direk şeridi |
-| `--mint` | `#DDF2EA` | Nane | "Açık" rozeti, boş saat vurgusu, bilgi kutuları |
-| `--mint-ink` | `#0F6B4F` | | Nane zemin üstündeki metin |
-| `--lemon` | `#FFC53D` | Kolonya limonu | Küçük vurgular (ör. takvimde "bugün" noktası); metin zemini olarak kullanılmaz |
-| `--success` / `--success-tint` | `#147A38` / `#DCF3E6` | | "Tamamlandı" |
-| `--danger` / `--danger-tint` | `#B42318` / `#FDE7E5` | | "Gelmedi", hata mesajları, iptal |
-| `--neutral-tint` | `#EDF1F6` | | "İptal edildi", pasif öğeler |
-
-**Durum rozetleri** her zaman metin içerir (renk tek başına anlam taşımaz):
-
-| Durum | Metin rengi | Zemin |
-|---|---|---|
-| Planlandı | `--cobalt` | `--cobalt-tint` |
-| Tamamlandı | `--success` | `--success-tint` |
-| Gelmedi | `--danger` | `--danger-tint` |
-| İptal edildi | `--ink-2` | `--neutral-tint` |
-| İşaretlenmeyi bekliyor | `--ink` | `--lemon` %35 opaklık |
-
-### 9.3 Tipografi
-- **Tek aile: Archivo** (Google Fonts, değişken genişlik ve ağırlık eksenleri, Türkçe karakter desteği). Yükleme: `https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap` (eksen aralıklarını Google Fonts sayfasından doğrula).
-- **Başlıklar:** `font-stretch: 75%`, `font-weight: 800`, `letter-spacing: -0.01em`. Dar ve kalın; eski berber tabelalarını çağrıştırır.
-- **Gövde:** `font-stretch: 100%`, `font-weight: 400`, 16–17 px, `line-height: 1.55`.
-- **Saatler ve fiyatlar:** `font-variant-numeric: tabular-nums` (sütunlar hizalı durur).
-- **Ölçek (px):** 14 / 16 / 18 / 22 / 28 / 36 / 48. Mobilde h1 32–36, masaüstünde 48.
-- Satır uzunluğu en fazla ~70 karakter. Yedek yazı tipi: `system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`.
-
-### 9.4 Yerleşim ve bileşenler
-- **Mobil öncelikli**, tek sütun; içerik sola hizalı; en geniş içerik alanı 1120 px. Kırılım noktaları: 640 px ve 1024 px.
-- **Köşe yarıçapı hiyerarşisi:** rozet ve çipler 4 px; buton ve inputlar 8 px; paneller 14 px. Her şeye aynı yarıçap verilmez.
-- **Gölge yerine kenarlık:** Paneller `1px solid var(--line)` ile ayrılır. Gölgesi olan tek öğe mobildeki sabit "Randevu al" çubuğu.
-- **Butonlar:** Birincil = kobalt dolgu, beyaz metin. İkincil = mürekkep renkli çerçeve. Tehlikeli işlem (iptal) = `--danger` renkli metin butonu + onay adımı.
-- **Saat seçenekleri:** Çerçeveli butonlar; seçilince kobalt dolgu. En az 44×44 px dokunma alanı.
-- **Dükkan listesi:** Kart ızgarası değil, geniş satırlar. Her satırda ad (başlık stili), mahalle, bugünün saatleri, açık/kapalı rozeti ve (Faz 5 sonrası) "İlk boş saat". Masaüstünde iki sütun.
-- **Formlar:** Etiket her zaman inputun üstünde, görünür. Hata mesajı ilgili alanın altında, `--danger` renkte.
-- **Mesajlar (Django messages):** Sayfanın üstünde, kapatılabilir, `role="status"`.
-
-### 9.5 İmza öğe: berber direği şeridi
-```css
---pole-stripe: repeating-linear-gradient(
-  135deg,
-  var(--pole-red) 0 10px, #fff 10px 20px,
-  var(--cobalt) 20px 30px, #fff 30px 40px
-);
-```
-Yalnızca üç yerde kullanılır: (1) header'ın en üstünde 6 px'lik bant, (2) logo işareti (küçük dikey hap şeklinde direk), (3) "Randevu fişi"nin üst kenarı. **Başka hiçbir yerde kullanılmaz**; öğenin etkisi azlığından gelir.
-
-### 9.6 Hareket
-- Tek özel an: Randevu onaylandığında fişin üstündeki şerit bir kez, ~1,2 sn boyunca döner gibi kayar (dönen berber direği). `prefers-reduced-motion: reduce` ise hiç oynamaz.
-- Bunun dışında yalnızca işlevsel geçişler (≤150 ms): basma, seçme, menü açma. Kaydırmaya bağlı giriş animasyonu ve kartlara hover'da yükselme efekti yok.
-
-### 9.7 Arayüz metinleri
-- **"Sen" dili**, cümle düzeni (yalnızca ilk harf büyük), aktif fiiller. Tamamı büyük harf etiketler ve buton metninin sonuna "→" eklemek yok.
-- Bir işlemin adı akış boyunca aynı kalır: buton "Randevuyu onayla" → mesaj "Randevun alındı". Buton "Tamamlandı" → rozet "Tamamlandı".
-- Hata mesajı neyin olduğunu ve nasıl düzeltileceğini söyler; özür dilemez, belirsiz konuşmaz.
-- Boş ekranlar ne yapılacağını gösterir.
+### 9.7 Python taraflı mesaj metinleri
+Django messages, form hata metinleri ve servis mesajları (view, form ve service kodundadır) ön yüz yenilemesinde değişmez. Şablonlardaki metinler FRONTEND-TASARIM.md §12'dedir.
 
 | Durum | Metin |
 |---|---|
-| Ana sayfa başlığı | Karamürsel'de tıraş vakti. |
-| Ana sayfa alt metni | Berberlerin boş saatlerini gör, randevunu hemen al. |
 | Boş saat yok | Bu gün için boş saat kalmadı. Başka bir gün seç. |
 | Dükkan kapalı gün | Dükkan bu gün kapalı. |
 | Saat doldu | Bu saat az önce doldu. Başka bir saat seç. |
@@ -542,17 +475,6 @@ Yalnızca üç yerde kullanılır: (1) header'ın en üstünde 6 px'lik bant, (2
 | Kısıtlama | Son 90 günde 2 randevuna gelmediğin için 12 Ekim'e kadar yeni randevu alamazsın. |
 | Panel, randevu yok | Bu gün için randevu yok. Çalışma saatlerin açık olduğu sürece müşteriler boş saatlerini görebilir. |
 | Kurulum eksik | Dükkanını yayına almak için eksikleri tamamla: çalışma saatleri, en az bir hizmet. |
-
-### 9.8 Erişilebilirlik ve responsive kontrol listesi
-- `<html lang="tr">`, anlamlı başlık hiyerarşisi, her inputun `<label>`'ı var.
-- Metin kontrastı WCAG AA (normal metin ≥ 4.5:1). Yukarıdaki renk çiftleri bu eşiği sağlar.
-- Görünür klavye odağı: `:focus-visible { outline: 3px solid var(--cobalt); outline-offset: 2px; }`.
-- Boş saatler yüklenirken `aria-live="polite"` alanında "Saatler yükleniyor…" yazar.
-- 360, 390, 768, 1280 px genişliklerde yatay taşma yok.
-- `prefers-reduced-motion` saygı görür.
-
-### 9.9 Kaçınılacaklar
-Krem zemin + terrakota vurgu; koyu zemin + neon yeşil; birbirinin aynısı yuvarlak kart ızgaraları ve aynı gri gölge; dekoratif gradyan yıkamaları; başlık üstünde küçük büyük harfli "eyebrow" etiketler; meta bilgileri orta nokta (·) ile birleştirme; başlıkta tek kelimeyi farklı renge boyama; her bölüme kaydırma animasyonu.
 
 ---
 
@@ -1036,3 +958,4 @@ Aşağıdakiler prototip için alınmış varsayılan kararlardır; değiştirme
 | 2026-09-20 | Faz 7 arayüz: uyarı ve kısıt kutusu yalnızca randevu sayfasında ve Randevularım'ın başında görünür (dükkan detayındaki "Randevu al" butonu değişmez). Kısıt varken "Randevuyu onayla" pasif kalır, sebep kutuda ve düğmenin altında yazar; kısıt ile sayım limiti birlikte varsa yalnızca kısıt gösterilir (§13 Faz 7) | Faz 5'teki `limit_message` düzeniyle tutarlılık |
 | 2026-09-20 | `seed_demo` (§13 Faz 7): `Shop.owner` OneToOne olduğu için 4 dükkan 4 sahip hesabı ister (belgedeki "1 demo sahip" bununla çelişiyordu); 4 sahip ve 2 müşteri hesabının hepsi aynı demo şifresini paylaşır (`DEMO_PASSWORD` ya da rastgele üretilip yazdırılır). Hesap ve dükkanlar sabit anahtarlarla bulunur (kopya üretmez); demo müşterilerin randevuları her çalıştırmada silinip bugüne göre yeniden kurulur. Yalnızca `DEBUG=True` iken ya da `--force` ile çalışır. Canlıya yükleme isteğe bağlıdır ve `scripts/migrate-production.ps1 -SeedDemo` ile kullanıcı tarafından yapılır | Belgedeki çelişkiyi çözmek; başka gün çalıştırınca eski demo randevular birikmesin |
 | 2026-09-20 | Faz 7 cila: `403.html` ve `403_csrf.html` Türkçe eklenir (Django'nun yerleşik CSRF sayfası İngilizce). Canlı duman testinin 1. adımını (ziyaretçi) Claude Code, 2–4. adımlarını (hesap ve şifre gerektirir) kullanıcı yapar (§13 Faz 7, CLAUDE.md) | Hesap oluşturma ve şifre kullanımı kullanıcıdadır |
+| 2026-09-20 | Ön yüz FRONTEND-TASARIM.md'ye göre yeniden tasarlanır ("Sıra var mı?" konsepti, limon kolonyası paleti, Unbounded + Figtree, alt sekme çubuğu). PROJECT.md §9 onun yerine geçer; yalnızca Python taraflı mesaj metinleri (§9.7) bu belgede kalır. Backend, URL'ler, şablon adları, context, form alanları ve API değişmez. Çalışma `arayuz-yenileme` dalında Adım 0–5 ile yürür; Adım 0 envanteri `docs/arayuz-envanter.md`'dedir. Önceki tasarıma ait kararlar (996, 1010, 1022'deki direk şeridi ve header düzeni) tarihsel kalır | Kullanıcı yeni bir ön yüz tasarımı istedi; tasarım kararları tek belgede toplansın |
