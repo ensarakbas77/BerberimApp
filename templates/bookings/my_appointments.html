@@ -7,8 +7,13 @@
 
 {% include "partials/_restriction_box.html" %}
 
-<section class="detail-section" aria-labelledby="upcoming-title">
-  <h2 id="upcoming-title">Yaklaşan</h2>
+<div class="segmented js-only" role="tablist" aria-label="Randevu listesi" data-js="segmented">
+  <button type="button" class="segmented__btn" role="tab" data-segment="upcoming" aria-selected="true">Yaklaşan</button>
+  <button type="button" class="segmented__btn" role="tab" data-segment="past" aria-selected="false">Geçmiş</button>
+</div>
+
+<section class="detail-section" aria-labelledby="upcoming-title" data-segment-panel="upcoming">
+  <h2 id="upcoming-title" class="panel-title">Yaklaşan</h2>
   {% if upcoming %}
   <ul class="appointment-list">
     {% for appointment in upcoming %}
@@ -16,15 +21,16 @@
     {% endfor %}
   </ul>
   {% else %}
-  <div class="panel">
-    <p>Yaklaşan randevun yok. Berberlerin boş saatlerine bak ve randevunu al.</p>
-    <a class="btn btn--primary" href="{% url 'shops:list' %}">Berberlere bak</a>
+  <div class="empty">
+    <p class="empty__title">Henüz randevun yok.</p>
+    <p>Berberlerin boş saatlerine bak ve randevunu al.</p>
+    <a class="btn btn--primary" href="{% url 'shops:list' %}">Berberlere göz at</a>
   </div>
   {% endif %}
 </section>
 
-<section class="detail-section" aria-labelledby="past-title">
-  <h2 id="past-title">Geçmiş</h2>
+<section class="detail-section" aria-labelledby="past-title" data-segment-panel="past">
+  <h2 id="past-title" class="panel-title">Geçmiş</h2>
   {% if past %}
   <ul class="appointment-list">
     {% for appointment in past %}
@@ -32,8 +38,8 @@
     {% endfor %}
   </ul>
   {% else %}
-  <div class="panel">
-    <p>Geçmiş randevun yok.</p>
+  <div class="empty">
+    <p class="empty__title">Geçmiş randevun yok.</p>
   </div>
   {% endif %}
 </section>

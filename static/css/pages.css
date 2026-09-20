@@ -421,6 +421,184 @@
   margin-bottom: var(--s-5);
 }
 
+/* ===== Randevu alma (§10.4) ===== */
+.booking-layout {
+  display: grid;
+  gap: var(--s-5);
+}
+
+.booking-layout > * {
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .booking-layout {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: var(--s-7);
+    align-items: start;
+  }
+
+  .booking-receipt {
+    position: sticky;
+    top: calc(var(--header-h) + var(--s-4));
+  }
+}
+
+.booking-steps {
+  max-width: 720px;
+}
+
+.booking-step {
+  min-width: 0;
+  margin: 0 0 var(--s-5);
+  padding: 0;
+  border: 0;
+}
+
+.booking-step legend,
+.booking-step__title {
+  display: block;
+  margin: 0 0 var(--s-3);
+  padding: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Adımlar gerçekten sıralı: numara Unbounded, ink-2 */
+.step-num {
+  display: inline-block;
+  min-width: 1.5em;
+  color: var(--ink-2);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.booking-receipt .btn {
+  margin-top: var(--s-4);
+}
+
+.receipt__note {
+  margin: var(--s-3) 0 0;
+  color: var(--red);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ===== Randevularım (§10.6) ===== */
+html.js .panel-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.segmented {
+  margin: var(--s-4) 0 var(--s-5);
+}
+
+.appointment-list {
+  display: grid;
+  gap: var(--s-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.appointment {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  scroll-margin-top: calc(var(--header-h) + var(--s-4));
+}
+
+.appointment--new {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 1px var(--ink);
+}
+
+.appointment__main {
+  display: flex;
+  gap: var(--s-4);
+  padding: var(--s-4) var(--s-5);
+}
+
+.appointment__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.appointment__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.appointment__shop {
+  margin: 0 0 var(--s-1);
+  font-size: 19px;
+  overflow-wrap: anywhere;
+}
+
+.appointment__shop a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.appointment__shop a:hover {
+  text-decoration: underline;
+}
+
+.appointment__service,
+.appointment__when {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--s-3);
+  margin: 0 0 var(--s-1);
+}
+
+.appointment__when {
+  font-weight: 600;
+}
+
+.appointment__note,
+.appointment__info {
+  margin: var(--s-2) 0 0;
+  color: var(--ink-2);
+}
+
+.appointment__notice {
+  margin: var(--s-3) 0 0;
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-md);
+}
+
+.appointment__notice--danger {
+  background: var(--red-tint);
+  color: var(--red);
+  font-weight: 600;
+}
+
+.appointment__foot {
+  padding: var(--s-3) var(--s-5);
+  border-top: 2px dashed var(--line);
+}
+
+.appointment__foot .appointment__info {
+  margin: 0;
+}
+
+/* Sessiz tehlikeli buton kartın metniyle hizalı dursun */
+.appointment__foot .btn--danger {
+  margin-left: calc(var(--s-3) * -1);
+}
+
 /* ===== GEÇİŞ KATMANI =====
    Henüz yeni tasarıma taşınmamış sayfaların eski işaretlemesi için; yeni tokenlarla yeniden renklendirildi.
    Her grup, ilgili sayfa yeni işaretlemeye geçince silinir (Adım 2–4); Adım 5'te katman tamamen kalkar. */
@@ -616,94 +794,6 @@
 .section-title {
   margin-top: 32px;
   font-size: 1.375rem;
-}
-
-/* @gecis:end */
-
-/* @gecis:start Randevu alma ve Randevularım (Faz 5) */
-.back-link {
-  margin: 0 0 8px;
-}
-
-.booking-form {
-  max-width: 720px;
-}
-
-.booking-step {
-  min-width: 0;
-  margin: 0 0 24px;
-  padding: 0;
-  border: 0;
-}
-
-.booking-step legend {
-  margin: 0 0 8px;
-  padding: 0;
-  font-size: 1.125rem;
-  font-weight: 700;
-}
-
-/* @gecis:end */
-
-/* @gecis:start Randevularım */
-.appointment-list {
-  display: grid;
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.appointment {
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  background: var(--surface);
-  overflow: hidden;
-  scroll-margin-top: 16px;
-}
-
-.appointment__body {
-  padding: 16px 20px;
-}
-
-.appointment__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.appointment__shop {
-  margin: 0 0 4px;
-  font-size: 1.375rem;
-  overflow-wrap: anywhere;
-}
-
-.appointment__shop a {
-  color: var(--ink);
-  text-decoration: none;
-}
-
-.appointment__shop a:hover {
-  color: var(--green);
-}
-
-.appointment__service,
-.appointment__when {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px 12px;
-  margin: 0 0 4px;
-}
-
-.appointment__when {
-  font-weight: 600;
-}
-
-.appointment__note,
-.appointment__info {
-  margin: 8px 0 0;
-  color: var(--ink-2);
 }
 
 /* @gecis:end */

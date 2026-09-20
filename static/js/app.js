@@ -74,6 +74,7 @@
         button.setAttribute("aria-selected", button.getAttribute("data-segment") === name ? "true" : "false");
       });
       panels.forEach(function (panel) {
+        panel.setAttribute("role", "tabpanel");
         panel.hidden = panel.getAttribute("data-segment-panel") !== name;
       });
     }

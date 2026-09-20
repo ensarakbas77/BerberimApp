@@ -1,40 +1,48 @@
 {% load berberim %}{% comment %}Kullanım: {% include "partials/_appointment_card.html" with appointment=appointment %}
-Müşterinin randevu kartı. `appointment.is_new` ise "Randevu fişi" görünümünde gelir ve şerit bir kez döner (PROJECT.md §9.6).{% endcomment %}
-<li class="appointment{% if appointment.is_new %} receipt receipt--new{% endif %}" id="randevu-{{ appointment.pk }}">
-  {% if appointment.is_new %}<div class="receipt__stripe" aria-hidden="true"></div>{% endif %}
-  <div class="appointment__body">
-    <div class="appointment__head">
-      <h3 class="appointment__shop"><a href="{{ appointment.shop.get_absolute_url }}">{{ appointment.shop.name }}</a></h3>
-      {% include "partials/_status_badge.html" with status=appointment.display_status %}
+Müşterinin randevu kartı: randevu fişinin sade hâli (FRONTEND-TASARIM.md §8.8, §10.6). Yaklaşan randevuda saat limon hap değil düz metindir
+(limon yalnızca alınabilir saati işaretler). `appointment.is_new` ise kart vurgulanır.{% endcomment %}
+<li class="appointment{% if appointment.is_new %} appointment--new{% endif %}" id="randevu-{{ appointment.pk }}">
+  <div class="appointment__main">
+    <div class="date-block" aria-hidden="true">
+      <span class="date-block__num tabular">{{ appointment.date|date:"j" }}</span>
+      <span class="date-block__meta">{{ appointment.date|date:"M" }} {{ appointment.date|date:"D" }}</span>
     </div>
-    <p class="appointment__service">
-      <span>{{ appointment.service_name }}</span>
-      <span class="tabular">{{ appointment.duration_minutes }} dk</span>
-      {% if appointment.show_price %}<span class="tabular">{{ appointment.price|price }}</span>{% endif %}
-    </p>
-    <p class="appointment__when tabular">
-      <time datetime="{{ appointment.date|date:'Y-m-d' }}">{{ appointment.date|date:"j F l" }}</time>
-      <span>{{ appointment.start_time|time:"H:i" }}–{{ appointment.end_time|time:"H:i" }}</span>
-    </p>
-    {% if appointment.customer_note %}<p class="appointment__note">Notun: {{ appointment.customer_note }}</p>{% endif %}
-
-    {% if appointment.display_status == "completed" %}
-    <p class="appointment__info">Sıhhatler olsun!</p>
-    {% elif appointment.display_status == "cancelled" %}
-      {% if appointment.cancelled_by == "shop" %}
-      <p class="appointment__info">Dükkan iptal etti{% if appointment.cancel_reason %}: {{ appointment.cancel_reason }}{% endif %}</p>
-      {% else %}
-      <p class="appointment__info">Sen iptal ettin.</p>
+    <div class="appointment__body">
+      <div class="appointment__head">
+        <h3 class="appointment__shop"><a href="{{ appointment.shop.get_absolute_url }}">{{ appointment.shop.name }}</a></h3>
+        {% include "partials/_status_badge.html" with status=appointment.display_status %}
+      </div>
+      <p class="appointment__service">
+        <span>{{ appointment.service_name }}</span>
+        <span class="tabular">{{ appointment.duration_minutes }} dk</span>
+        {% if appointment.show_price %}<span class="tabular">{{ appointment.price|price }}</span>{% endif %}
+      </p>
+      <p class="appointment__when tabular">
+        <time datetime="{{ appointment.date|date:'Y-m-d' }}">{{ appointment.date|date:"j F l" }}</time>
+        <span>{{ appointment.start_time|time:"H:i" }}–{{ appointment.end_time|time:"H:i" }}</span>
+      </p>
+      {% if appointment.customer_note %}<p class="appointment__note">Notun: {{ appointment.customer_note }}</p>{% endif %}
+      {% if appointment.display_status == "completed" %}
+      <p class="appointment__info">Sıhhatler olsun!</p>
+      {% elif appointment.display_status == "cancelled" %}
+        {% if appointment.cancelled_by == "shop" %}
+        <p class="appointment__notice appointment__notice--danger">Dükkan iptal etti{% if appointment.cancel_reason %}: {{ appointment.cancel_reason }}{% endif %}</p>
+        {% else %}
+        <p class="appointment__info">Sen iptal ettin.</p>
+        {% endif %}
       {% endif %}
-    {% elif appointment.display_status == "scheduled" %}
-      {% if appointment.can_cancel %}
-      <form method="post" action="{% url 'bookings:cancel' appointment.pk %}" class="inline-form" data-confirm="Bu randevuyu iptal etmek istediğine emin misin?">
-        {% csrf_token %}
-        <button type="submit" class="btn btn--danger">Randevuyu iptal et</button>
-      </form>
-      {% else %}
-      <p class="appointment__info">Randevuna 1 saatten az kaldı. İptal için dükkanı ara: <a href="tel:{{ appointment.shop.phone|tel_href }}">{{ appointment.shop.phone|phone }}</a></p>
-      {% endif %}
+    </div>
+  </div>
+  {% if appointment.display_status == "scheduled" %}
+  <div class="appointment__foot">
+    {% if appointment.can_cancel %}
+    <form method="post" action="{% url 'bookings:cancel' appointment.pk %}" class="inline-form" data-confirm="Bu randevuyu iptal etmek istediğine emin misin?">
+      {% csrf_token %}
+      <button type="submit" class="btn btn--danger btn--sm">Randevuyu iptal et</button>
+    </form>
+    {% else %}
+    <p class="appointment__info">Randevuna 1 saatten az kaldı. İptal için dükkanı ara: <a href="tel:{{ appointment.shop.phone|tel_href }}">{{ appointment.shop.phone|phone }}</a></p>
     {% endif %}
   </div>
+  {% endif %}
 </li>
