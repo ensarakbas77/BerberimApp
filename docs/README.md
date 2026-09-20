@@ -11,7 +11,7 @@ Koda yeni bakan biri için önerilen sıra:
 1. Önce [README](../README.md): proje ne yapıyor, nasıl çalıştırılır.
 2. [01 Mimari genel bakış](01-mimari-genel-bakis.md): büyük resim, katmanlar, klasör haritası, bir isteğin yolculuğu.
 3. [02 Veri modeli](02-veri-modeli.md): tablolar, ilişkiler, randevu durum makinesi.
-4. Sonra ilgilendiğin modülün kılavuzu: [03 accounts, core, config](03-modul-accounts-core-config.md) ve [04 shops](04-modul-shops.md) hazır; `bookings` ve `panel` kılavuzları (Faz 5–6) hazır oldukça eklenecek.
+4. Sonra ilgilendiğin modülün kılavuzu: [03 accounts, core, config](03-modul-accounts-core-config.md) ve [04 shops](04-modul-shops.md), [05 bookings](05-modul-bookings.md), [06 panel](06-modul-panel.md) ve [07 arayüz katmanı](07-arayuz-katmani.md) (şablonlar, CSS, JS) hazır.
 
 Her modül kılavuzu aynı üç katmanlı kalıbı izler:
 
@@ -33,8 +33,8 @@ Ayrıca her kılavuzda "dikkat edilecekler" (kodu değiştirirken tuzak olan yer
 | 1 | 2 | `01-mimari-genel-bakis.md`, `02-veri-modeli.md` | Katmanlar, klasör haritası, istek yolculuğu, ayarlar, erişim modeli; tablolar, ilişkiler, durum makinesi | Hazır |
 | 2 | 3 | `03-modul-accounts-core-config.md` | Hesaplar, rol decorator'ları, çekirdek yardımcılar, demo veri komutu, ayarlar ve URL yapılandırması | Hazır |
 | 2 | 4 | `04-modul-shops.md` | Slug, telefon, çalışma saatleri, dükkan oluşturma, yayın kuralları, vitrin ve arama mantığı | Hazır |
-| 3 | 5 | `05-modul-bookings.md` | Müsaitlik algoritması, randevu oluşturma, iptal, Gelmedi kuralı (en kritik modül) | Sırada |
-| 3 | 6 | `06-modul-panel.md`, `07-arayuz-katmani.md` | Sahip paneli view'ları ve formları; şablonlar, CSS, JS | Sırada |
+| 3 | 5 | `05-modul-bookings.md` | Müsaitlik algoritması, randevu oluşturma, kilitler, iptal, sahip işlemleri, Gelmedi kuralı (en kritik modül) | Hazır |
+| 3 | 6 | `06-modul-panel.md`, `07-arayuz-katmani.md` | Sahip paneli view'ları ve formları; şablonlar, CSS, JS | Hazır |
 | 4 | 7 | `08-test-rehberi.md`, `09-operasyon.md`, `10-guvenlik.md` | Test stratejisi; dağıtım ve ortam; güvenlik denetimi özeti | Sırada |
 | 4 | 8 | `11-kullanici-kilavuzu.md`, `12-proje-raporu.md`, Word derlemesi | Müşteri ve sahip kılavuzu; süreç ve kazanımlar; `.docx` çıktısı | Sırada |
 
