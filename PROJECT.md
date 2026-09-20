@@ -497,15 +497,17 @@ berberim/
 ├── shops/                     # Shop, WorkingHours, Service, ShopClosure; vitrin view'ları; services.py
 ├── bookings/                  # Appointment; müsaitlik ve randevu servisleri; müşteri view'ları; API
 ├── panel/                     # Dükkan sahibi paneli view'ları (model yok)
+├── FRONTEND-TASARIM.md        # arayüz ve tasarım sistemi (§9'un yerine geçer)
+├── docs/arayuz-envanter.md    # arayüz yenilemesinin Adım 0 envanteri
 ├── templates/
 │   ├── base.html
-│   ├── 404.html, 403.html, 500.html
-│   ├── partials/              # _header, _footer, _messages, _status_badge, _shop_row
+│   ├── 404.html, 403.html, 403_csrf.html, 500.html
+│   ├── partials/              # _header, _tabbar, _footer, _messages, _form_field, _form_checkbox, _status_badge, _shop_row, _appointment_card, _restriction_box, _logout_form
 │   ├── core/  accounts/  shops/  bookings/  panel/
 ├── static/
-│   ├── css/                   # tokens.css, base.css, components.css
-│   ├── js/                    # app.js (menü, mesaj, data-confirm onayı), booking.js, map.js (konum seçimi), shop-map.js (detay haritası)
-│   └── img/                   # logo.svg, favicon.svg
+│   ├── css/                   # tokens.css, base.css, components.css, pages.css
+│   ├── js/                    # app.js (mesaj, data-confirm, şifre göster, bölümlü kontrol, süzgeç), booking.js, appointment-edit.js, map.js (görüntüleme ve konum seçme)
+│   └── img/                   # logo.svg, favicon.svg, icons.svg
 └── (her uygulamada) tests/
 ```
 
@@ -962,3 +964,4 @@ Aşağıdakiler prototip için alınmış varsayılan kararlardır; değiştirme
 | 2026-09-20 | Ön yüz Adım 2 (vitrin ve hesap sayfaları): dükkan detayında tek `aside` vardır (mobilde başlığın altında, masaüstünde sağ sütunda yapışkan; kutudaki "Randevu al" mobilde alt eylem çubuğuna devredilir). Harita JS'i tek `map.js`'te birleşti (görüntüleme ve konum seçme, limon işaretçi); `shop-map.js` kaldırıldı ve 1014 numaralı karar bu ölçüde geçersizdir. "Bugün dolu" = dükkan şu an açık ve `first_slot` yok; dükkan kapalıysa `status.label` yazar. Arama alanının etiketi görünür kalır ("Berber adı ara", FRONTEND-TASARIM.md §13). Sahip için mobilde "Dükkanımı gör" bağlantısı sekme çubuğunda yok (Adım 4'te ayar sayfalarının çip menüsüne eklenecek) | Tasarım dosyasının sabitlediği düzeni bağlama uydurmak; yeni belge ile kod arasında fark kalmasın |
 | 2026-09-20 | Ön yüz Adım 3 (randevu akışı): randevu sayfasında iki "Randevuyu onayla" düğmesi vardır (fişte ve mobil alt eylem çubuğunda; ikincisi `form="booking-form"` ile aynı formu gönderir, saat seçilince belirir); kısıt nedeni fişin içinde de yazılır. `booking.js` API ve form sözleşmesini korur; yüklenirken iskelet hap kutuları, saat değişince fiş saati 180 ms'lik belirme animasyonu (§11) vardır ve eski direk şeridi animasyonu kalktı. Randevularım'da "Yaklaşan | Geçmiş" bölümlü kontrol (JS yoksa iki bölüm alt alta), tek boş durum "Henüz randevun yok.", yeni randevu `appointment--new` çerçevesiyle vurgulanır | Tasarım dosyasının §10.4, §10.6 ve §11 kararları |
 | 2026-09-20 | Ön yüz Adım 4 (sahip paneli): panel sayfaları `base_panel.html` içindeki `.panel-layout` ile çizilir; masaüstünde sol yan menü (Bugün, Randevular, "Dükkan" başlığı altında dört ayar sayfası, en altta Dükkanımı gör ve Profil), mobilde alt sekme çubuğu ana bölümleri taşır ve dükkan ayar sayfalarının üstünde "Dükkanımı gör" çipini de içeren yatay çip menü görünür (Adım 2'de ertelenen bağlantı). "Özet" sayfasının adı "Bugün" olur. Bugün sayfasında gün gezintisi yoktur (görünüm hep bugün; `panel:home` view'ı değişmedi), yerine "Tüm randevular" bağlantısı durur. İşaretlenmeyi bekleyenler (bugünün ve önceki günlerin satırları) tek "İşaretlenmeyi bekleyen (N)" bölümünde toplanır, önceki günlerin satırları tarihi de yazar. Kurulum kontrol listesi rozet yerine onay ikonlu satırlardır (eksik satır "Tamamla" bağlantısı). Gelmedi rozeti "N kez gelmedi" yazar, 90 günlük pencere ekran okuyucu için gizli metindedir. Çalışma saatleri mobilde gün kartı, ≥1024 px'te tablo düzenindedir; mola `<details>` içindedir ve kayıtlıysa açık gelir. Bilgiler sayfasında yayın kutusu yoktur (rozet ve Bugün sayfasına bağlantı); yayın kutusu Bugün'de kalır (§15 996). Şablon adları, context, form alanları, JS kancaları ve URL'ler değişmedi | Tasarım dosyasının §9.3, §10.7–§10.9 kararları; view'lara dokunmadan uygulanabilenle yetinmek |
+| 2026-09-20 | Ön yüz Adım 5 (cila): kalite kontrol 360/390/768/1024/1280 px'te taşmasız; dokunma alanları 44 px'e tamamlandı (atlama bağlantısı, şifre göster, bölümlü kontrol, telefon ve form altı bağlantıları, harita yakınlaştırma düğmeleri); uzun ad ve notlar için gövdede `overflow-wrap: break-word`. Tasarım dosyasının §14'ündeki `panel.js` yazılmadı: `data-confirm` ve çip menüde etkin çipi görünür alana kaydırma `app.js`'te, panel sayfaları için ayrı JS dosyası gerekmedi. Ölü CSS kaldırıldı, geçiş katmanı yok. README'ye "Arayüz" bölümü eklendi. Yayın (main'e birleştirme ve deploy) kullanıcı onayına bırakıldı | §13 kontrol listesi; CLAUDE.md kuralı: commit ve push yalnızca istenince, canlıya çıkış kullanıcı onayıyla |

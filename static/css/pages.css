@@ -334,6 +334,12 @@
   color: var(--ink-2);
 }
 
+.detail-phone a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+}
+
 .shop-description {
   max-width: 68ch;
   overflow-wrap: anywhere;
@@ -377,8 +383,18 @@
 }
 
 .auth__links {
-  margin: 0 0 var(--s-2);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--s-2);
+  margin: 0;
   color: var(--ink-2);
+}
+
+.auth__links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
 }
 
 .auth-aside {
@@ -937,8 +953,14 @@ html.js .panel-title {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--s-2) var(--s-3);
-  margin: 0 0 var(--s-4);
+  gap: 0 var(--s-3);
+  margin: 0 0 var(--s-3);
+}
+
+.publish-line a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
 }
 
 .section-title {
@@ -1158,4 +1180,11 @@ html.js .panel-title {
   .hours-day__error {
     grid-column: 2 / -1;
   }
+}
+
+/* ===== Harita denetimleri (Leaflet varsayılanı 30 px; dokunma alanı 44 px) ===== */
+.map.leaflet-container .leaflet-bar a {
+  width: var(--tap);
+  height: var(--tap);
+  line-height: var(--tap);
 }

@@ -56,12 +56,6 @@
   color: var(--red);
 }
 
-/* Dolgulu kırmızı yalnızca onay adımında ("Evet, iptal et") */
-.btn--danger-solid {
-  background: var(--red);
-  color: #fff;
-}
-
 .btn--block {
   display: flex;
   width: 100%;
@@ -205,7 +199,7 @@ select.input {
   position: absolute;
   top: 50%;
   right: 4px;
-  min-height: 40px;
+  min-height: var(--tap);
   padding: 0 12px;
   border: 0;
   background: none;
@@ -748,8 +742,7 @@ select.input {
 }
 
 .chip[aria-current="true"],
-.chip[aria-current="page"],
-.chip.is-selected {
+.chip[aria-current="page"] {
   border-color: var(--ink);
   background: var(--ink);
   color: #fff;
@@ -759,14 +752,14 @@ select.input {
 .segmented {
   display: inline-flex;
   gap: var(--s-1);
-  padding: var(--s-1);
+  padding: 2px;
   border: 1px solid var(--line);
   border-radius: var(--r-pill);
   background: var(--neutral-tint);
 }
 
 .segmented__btn {
-  min-height: 40px;
+  min-height: var(--tap);
   padding: 0 var(--s-4);
   border: 1px solid transparent;
   border-radius: var(--r-pill);
@@ -795,13 +788,6 @@ select.input {
 
 .receipt__body {
   padding: 20px;
-}
-
-.receipt__title {
-  margin: 0 0 var(--s-1);
-  font-family: var(--font-body);
-  font-size: 18px;
-  font-weight: 700;
 }
 
 .receipt__shop {
@@ -966,6 +952,13 @@ select.input {
   margin: var(--s-1) 0 0;
   color: var(--ink-2);
   font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.schedule-row__meta a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
 }
 
 .schedule-row__actions {

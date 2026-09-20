@@ -20,6 +20,7 @@ body {
   font-size: 16px;
   font-weight: 400;
   line-height: 1.55;
+  overflow-wrap: break-word; /* uzun ad ve notlar düzeni taşırmasın (§13) */
   -webkit-font-smoothing: antialiased;
 }
 
@@ -156,7 +157,10 @@ html:not(.js) .js-only {
   left: var(--s-2);
   top: -100px;
   z-index: 100;
-  padding: var(--s-2) var(--s-4);
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: 0 var(--s-4);
   border-radius: var(--r-md);
   background: var(--ink);
   color: #fff;

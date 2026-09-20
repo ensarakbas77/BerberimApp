@@ -114,7 +114,31 @@ Ortam değişkeni `.env` dosyasındaki değeri geçersiz kıldığı için `.env
 | `shops/` | Dükkan, çalışma saatleri, hizmet ve kapalı gün modelleri; slug, `is_open_at`, yayın ön koşulları ve vitrin (`services.py`); herkese açık dükkan listesi ve detay sayfaları |
 | `panel/` | Dükkan sahibi paneli: dükkan bilgileri ve konum (Leaflet), çalışma saatleri, hizmetler, kapalı günler, yayına alma; günlük randevu listesi, durum işaretleme (Tamamlandı, Gelmedi), randevu düzenleme ve sahip iptali |
 | `bookings/` | Randevu modeli; müsaitlik, randevu oluşturma, müşteri iptali, "İlk boş saat", sahip işlemleri ve Gelmedi kuralı (`services.py`); randevu sayfası, Randevularım ve müsaitlik API'si |
-| `templates/`, `static/` | Şablonlar, CSS, JS ve görseller |
+| `templates/`, `static/` | Şablonlar, CSS, JS ve görseller (ayrıntı için aşağıdaki "Arayüz") |
+
+## Arayüz
+
+Arayüzün tamamı [FRONTEND-TASARIM.md](FRONTEND-TASARIM.md) dosyasındaki tasarım sistemine göre çizilir ("Sıra var mı?" konsepti, limon kolonyası paleti, Unbounded + Figtree). Renkler, aralıklar, köşe yarıçapları ve bileşenler o dosyada tanımlıdır; yeni bir sayfa eklerken önce oraya bak. Kütüphane yoktur: düz CSS ve vanilla JS, yalnızca Leaflet ve Google Fonts harici.
+
+```
+static/
+├── css/
+│   ├── tokens.css      # yalnızca CSS değişkenleri (renk, aralık, yarıçap, yükseklik)
+│   ├── base.css        # reset, tipografi, kapsayıcı, başlık, alt sekme çubuğu, alt eylem çubuğu, yardımcılar
+│   ├── components.css  # ortak bileşenler (düğme, form alanı, rozet, çip, saat hapı, fiş, program satırı...)
+│   └── pages.css       # sayfaya özgü düzenler (ana sayfa, dükkan detayı, randevu alma, sahip paneli...)
+├── js/
+│   ├── app.js          # mesaj kapatma, data-confirm, şifre göster, bölümlü kontrol, süzgeç otomatik gönderme
+│   ├── booking.js      # hizmet, gün ve saat seçimi; müsaitlik API'si; fiş güncelleme
+│   ├── appointment-edit.js  # panelde randevu düzenleme: saat listesini yeniler
+│   └── map.js          # Leaflet: dükkan detayında görüntüleme, panelde konum seçme
+└── img/                # logo.svg, favicon.svg, icons.svg (satır içi SVG ikon sprite'ı)
+```
+
+- Giriş yapmış kullanıcıya mobilde alt sekme çubuğu (`templates/partials/_tabbar.html`), ≥1024 px'te üst gezinti görünür; sahip panelinde masaüstünde ayrıca sol yan menü vardır.
+- JS kancaları sınıflarla değil `data-js="..."` ve `data-*` öznitelikleriyle kurulur; JS olmadan sayfalar yine kullanılabilir (saat seçimi hariç, o API'ye bağlıdır).
+- Satır içi `style` ve `onclick` kullanılmaz; `!important` yalnızca yardımcı sınıflardadır ve `prefers-reduced-motion` altında animasyonlar kapanır.
+- Yerelde tüm ekranları dolu görmek için `python manage.py seed_demo` çalıştır (yukarıdaki "Demo verisi").
 
 ## Canlıya alma (Supabase + Vercel)
 
