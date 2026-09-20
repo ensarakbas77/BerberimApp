@@ -13,6 +13,11 @@ def home(request):
     return render(request, "core/home.html", {"open_listings": open_listings, "has_shops": bool(listings)})
 
 
+def csrf_failure(request, reason=""):
+    """CSRF doğrulaması başarısız olunca Django'nun İngilizce yerleşik sayfası yerine Türkçe sayfa gösterilir."""
+    return render(request, "403_csrf.html", status=403)
+
+
 @require_safe
 @never_cache
 def health(request):

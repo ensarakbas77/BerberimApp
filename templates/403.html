@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Erişim yok | Berberim{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <h1>Bu sayfaya erişemezsin.</h1>
+  <p class="lead">Bu sayfayı görmek için gereken yetkin yok. Ana sayfaya dönüp devam edebilirsin.</p>
+  <a class="btn btn--primary" href="{% url 'core:home' %}">Ana sayfaya dön</a>
+</section>
+{% endblock %}

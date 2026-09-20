@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}İşlem tamamlanamadı | Berberim{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <h1>İşlem tamamlanamadı.</h1>
+  <p class="lead">Sayfa uzun süre açık kaldığı ya da çerezler kapalı olduğu için güvenlik doğrulaması başarısız oldu. Sayfayı yenileyip işlemi tekrar dene; tarayıcında çerezlerin açık olduğundan emin ol.</p>
+  <a class="btn btn--primary" href="{% url 'core:home' %}">Ana sayfaya dön</a>
+</section>
+{% endblock %}

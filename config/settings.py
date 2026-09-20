@@ -108,6 +108,7 @@ if DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql":
 
 AUTH_USER_MODEL = "accounts.User"
 LOGIN_URL = "accounts:login"
+CSRF_FAILURE_VIEW = "core.views.csrf_failure"
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},

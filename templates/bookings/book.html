@@ -9,6 +9,7 @@
 <h1>Randevu al</h1>
 <p class="lead">{{ shop.name }}</p>
 
+{% include "partials/_restriction_box.html" %}
 {% if limit_message %}
 <div class="alert alert--warning form-alert" role="status">
   <p class="alert__text">{{ limit_message }}</p>
@@ -79,7 +80,8 @@
     </div>
   </section>
 
-  <button type="submit" class="btn btn--primary btn--block" data-submit{% if limit_message %} data-locked disabled aria-disabled="true"{% endif %}>Randevuyu onayla</button>
+  <button type="submit" class="btn btn--primary btn--block" data-submit{% if limit_message or blocked %} data-locked disabled aria-disabled="true"{% endif %}{% if blocked %} aria-describedby="restriction-note"{% endif %}>Randevuyu onayla</button>
+  {% if blocked %}<p id="restriction-note" class="field__hint">Randevu alma {{ restriction.until|date:"j F" }} tarihine kadar kapalı. Sebep yukarıda yazıyor.</p>{% endif %}
 </form>
 {% endblock %}
 

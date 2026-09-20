@@ -85,6 +85,8 @@ def book(request, slug):
     if selected_service_id is None and len(active_services) == 1:
         selected_service_id = active_services[0].pk  # tek hizmet varsa hazır seçili gelir
 
+    restriction = services.get_booking_restriction(request.user, now.date())
+    blocked = restriction.level == services.LEVEL_BLOCKED
     context = {
         "shop": shop,
         "form": form,
@@ -93,7 +95,10 @@ def book(request, slug):
         "selected_service_id": selected_service_id,
         "selected_date": selected.get("date", ""),
         "selected_time": selected.get("time", ""),
-        "limit_message": services.get_count_limit_message(request.user, shop, now),
+        "restriction": restriction,
+        "blocked": blocked,
+        # Kısıt ile sayım limiti birlikte varsa yalnızca kısıt gösterilir (PROJECT.md §15).
+        "limit_message": None if blocked else services.get_count_limit_message(request.user, shop, now),
     }
     return render(request, "bookings/book.html", context)
 
@@ -117,7 +122,10 @@ def my_appointments(request):
         appointment.show_price = appointment.price is not None and appointment.shop.show_prices
         # Yalnızca kendi randevusu vurgulanır: liste zaten müşterinin kayıtlarından oluşuyor.
         appointment.is_new = appointment.pk == new_id and appointment in upcoming
-    return render(request, "bookings/my_appointments.html", {"upcoming": upcoming, "past": past})
+    restriction = services.get_booking_restriction(request.user, now.date())
+    return render(
+        request, "bookings/my_appointments.html", {"upcoming": upcoming, "past": past, "restriction": restriction}
+    )
 
 
 @customer_required

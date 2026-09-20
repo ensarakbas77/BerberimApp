@@ -1,0 +1,11 @@
+{% comment %}Kullanım: {% include "partials/_restriction_box.html" with restriction=restriction %}
+Gelmedi uyarısı ya da kısıtı (PROJECT.md §7.7, §9.7). Kısıt yoksa hiçbir şey çizmez.{% endcomment %}
+{% if restriction.level == "blocked" %}
+<div class="alert alert--error form-alert" role="alert">
+  <p class="alert__text">{{ restriction.message }}</p>
+</div>
+{% elif restriction.level == "warning" %}
+<div class="alert alert--warning form-alert" role="status">
+  <p class="alert__text">{{ restriction.message }}</p>
+</div>
+{% endif %}

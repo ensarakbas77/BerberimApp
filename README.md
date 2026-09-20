@@ -48,6 +48,29 @@ python manage.py runserver
 
 Sağlık kontrolü: `http://localhost:8000/saglik/` yanıtı `{"status": "ok", "db": true}` olmalı.
 
+Yönetim paneli (`/yonetim/`) site yöneticisi içindir: kullanıcıları (rol süzgeciyle müşteri ve dükkan sahibi), dükkanları, hizmetleri ve randevuları listeleyip arar, gerektiğinde dükkanı yayından kaldırır.
+
+## Demo verisi
+
+Gösterim için örnek veri yüklemek istersen (yalnızca yerelde, `DEBUG=True` iken çalışır):
+
+```bash
+python manage.py seed_demo
+```
+
+Komut 4 hayali Karamürsel dükkanı (farklı saatler, molalar ve hizmetler; biri fiyatları göstermez), sahipleri, 2 müşteri ve bugüne göre geçmiş/gelecek örnek randevular oluşturur. Tekrar çalıştırınca kopya üretmez; demo müşterilerin randevularını bugüne göre yeniden kurar.
+
+| Hesap | E-posta (giriş) | Not |
+|---|---|---|
+| Demo sahip | `demo_sahip@demo.berberim.test` | "Usta Kemal Berber"; bugüne ait randevuları var |
+| Diğer sahipler | `demo_sahip2@…`, `demo_sahip3@…`, `demo_sahip4@…` | Her dükkanın ayrı sahibi olur |
+| Müşteri 1 | `demo_musteri1@demo.berberim.test` | Bir Gelmedi'si var: Gelmedi uyarısı görünür |
+| Müşteri 2 | `demo_musteri2@demo.berberim.test` | Uyarısı yok |
+
+Tüm demo hesapları **aynı şifreyi** paylaşır. Şifre `.env`'deki ya da ortamdaki `DEMO_PASSWORD` değişkeninden okunur; tanımlı değilse komut rastgele bir şifre üretip çıktıya yazar. Şifre bu dosyaya yazılmaz; komutu her çalıştırdığında demo hesaplarının şifresi yenilenir.
+
+Canlı sitede demo verisi ancak `--force` ile yüklenir; bunun için "Canlıya alma" bölümündeki `-SeedDemo` anahtarına bak.
+
 ## Kontroller ve testler
 
 ```bash
@@ -86,11 +109,11 @@ Ortam değişkeni `.env` dosyasındaki değeri geçersiz kıldığı için `.env
 | Klasör | İçerik |
 |---|---|
 | `config/` | Django ayarları ve ana URL yapılandırması |
-| `core/` | Ana sayfa ve sağlık kontrolü |
+| `core/` | Ana sayfa, sağlık kontrolü, ortak form mixin'i, `seed_demo` komutu; hata sayfaları (`templates/403.html`, `403_csrf.html`, `404.html`, `500.html`) |
 | `accounts/` | Özel kullanıcı modeli (e-posta ile giriş, kullanıcı adı, rol), müşteri ve dükkan sahibi kaydı, giriş, çıkış, profil, rol decorator'ları |
 | `shops/` | Dükkan, çalışma saatleri, hizmet ve kapalı gün modelleri; slug, `is_open_at`, yayın ön koşulları ve vitrin (`services.py`); herkese açık dükkan listesi ve detay sayfaları |
-| `panel/` | Dükkan sahibi paneli: dükkan bilgileri ve konum (Leaflet), çalışma saatleri, hizmetler, kapalı günler, yayına alma |
-| `bookings/` | Randevu modeli; müsaitlik, randevu oluşturma, müşteri iptali ve "İlk boş saat" (`services.py`); randevu sayfası, Randevularım ve müsaitlik API'si |
+| `panel/` | Dükkan sahibi paneli: dükkan bilgileri ve konum (Leaflet), çalışma saatleri, hizmetler, kapalı günler, yayına alma; günlük randevu listesi, durum işaretleme (Tamamlandı, Gelmedi), randevu düzenleme ve sahip iptali |
+| `bookings/` | Randevu modeli; müsaitlik, randevu oluşturma, müşteri iptali, "İlk boş saat", sahip işlemleri ve Gelmedi kuralı (`services.py`); randevu sayfası, Randevularım ve müsaitlik API'si |
 | `templates/`, `static/` | Şablonlar, CSS, JS ve görseller |
 
 ## Canlıya alma (Supabase + Vercel)
@@ -234,7 +257,26 @@ unset DATABASE_URL
 2. Supabase'e migrate et (yukarıdaki 2. adımdaki script'i `-CreateSuperuser` olmadan çalıştır ya da `migrate` komutunu elle ver).
 3. Push et; Vercel deploy eder.
 
-Kodu migrate etmeden yayınlarsan canlı site hata verir. Yeni tablolar oluştuktan sonra Supabase'de *Advisors* sayfasındaki güvenlik uyarılarını kontrol et.
+Kodu migrate etmeden yayınlarsan canlı site hata verir. Yeni tablolar oluştuktan sonra Supabase'de *Advisors* sayfasındaki güvenlik uyarılarını kontrol et. Model değişmeyen fazlarda (ör. yalnızca arayüz ya da kural değişikliği) migrate gerekmez, doğrudan push edilir.
+
+### 6. Demo verisi (isteğe bağlı)
+
+Canlı siteyi gösterime hazırlamak için demo dükkanlarını ve hesaplarını yükleyebilirsin. Bu, halka açık sitede tahmin edilebilecek hesaplar oluşturur; yalnızca istediğinde yap. `.env`'ye `DEMO_PASSWORD=<demo şifresi>` satırını ekle (boş bırakırsan komut rastgele bir şifre üretip çıktıya yazar) ve:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\migrate-production.ps1 -ProjectRef <proje-kimliği> -PoolerHost <pooler-host> -SeedDemo
+```
+
+Komut önce `migrate` uygular (bekleyen migration yoksa hiçbir şey değişmez), sonra `seed_demo --force` çalıştırır. Tekrar çalıştırınca kopya üretmez. Hesaplar "Demo verisi" bölümündedir.
+
+### 7. Canlı duman testi
+
+Yeni bir sürümü yayınladıktan sonra dört adımda kontrol et:
+
+1. **Ziyaretçi:** ana sayfa → berber listesi → bir dükkanın detayı → "Randevu al" → giriş sayfasına yönlenir (`?next=` ile).
+2. **Müşteri:** yeni müşteri kaydı → randevu al → Randevularım'da görünür → iptal et.
+3. **Dükkan sahibi:** sahip girişi → panelde bugünün randevusu → Tamamlandı ve Gelmedi işaretleme.
+4. **Gelmedi kuralı:** aynı müşteriye 2 Gelmedi işaretle → müşteri yeni randevu alamaz ve nedenini görür; sahip bir işareti düzeltince engel kalkar.
 
 ### `check --deploy` hakkında
 
@@ -259,7 +301,11 @@ Prototipte bilinen eksikler (ayrıntılar için PROJECT.md §14):
 - **Dükkan listesi sayfalanmaz ve arama Python tarafında yapılır** (Türkçe harf duyarsız). Yayındaki dükkan sayısı yüzlerce olursa süzme ve sayfalama veritabanı tarafına taşınmalı (PROJECT.md §15).
 - **Randevu sayfasında saatler JavaScript ile yüklenir.** JS kapalıysa saat seçilemez; sayfada uyarı notu görünür (PROJECT.md §15).
 - **Randevusu olan bir dükkan (ve sahibinin hesabı) silinemez.** `Appointment.service` `PROTECT`; dükkanı silmek yerine yayından kaldırmak yeterli, gerçekten silinecekse önce randevular Django admin'den silinir.
-- **Sahip randevu iptali Faz 6'da gelecek.** O zamana kadar planlı randevusu olan güne kapalı gün eklenemez.
+- **Planlı randevusu olan güne kapalı gün eklenemez.** Otomatik iptal yok: sahip önce o günün randevularını panelden iptal eder, sonra kapalı günü ekler (PROJECT.md §15).
+- **Bildirim yok.** Sahip bir randevuyu düzenler ya da iptal ederse müşteri bunu yalnızca Randevularım'da görür; SMS, WhatsApp ya da e-posta hatırlatması prototipte yok (PROJECT.md §14).
+- **Sahip müşteri adına randevu ekleyemez.** Telefonla gelen randevular için manuel ekleme yok (PROJECT.md §14).
+- **Gelmedi kuralı hesap başınadır.** Sayım tüm dükkanlardaki Gelmedi'leri kapsar ve dükkanlar arası paylaşılır; bir dükkanın sahibi başka dükkandaki sayıyı görür (dükkan adı görünmez). Kural gerekirse dükkan bazlı yapılabilir.
+- **Demo hesapları ortak şifre kullanır.** Canlıya yüklenirse bu şifreyi kendin yönet ve işin bitince demo hesaplarını Django admin'den sil.
 - **Hizmetlerin sırası panelden değiştirilemez.** Yeni hizmet listenin sonuna eklenir (PROJECT.md §15).
 - **Konum seçimi fare ya da dokunmatik içindir.** Klavyeyle haritayı kaydırıp Enter ile ortadaki noktayı seçmek mümkün, ama koordinat girişi yok. Konum isteğe bağlıdır.
 - **Dükkan sahibi menüsünde Profil bağlantısı yok** (PROJECT.md §8'deki menü listesine uygun). Sahip `/hesap/profil/` adresine doğrudan girerek kullanıcı adını ve telefonunu düzenleyebilir.

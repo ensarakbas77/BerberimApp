@@ -7,10 +7,11 @@ import datetime
 import re
 from collections import Counter
 from dataclasses import dataclass
+from typing import NamedTuple
 
 from django.conf import settings
 from django.db import IntegrityError, transaction
-from django.db.models import Count, Prefetch, Q
+from django.db.models import Count, Max, Prefetch, Q
 from django.utils import timezone
 from django.utils.formats import date_format
 
@@ -236,6 +237,61 @@ def get_booking_days(shop, now=None):
     return days
 
 
+# --- Gelmedi kuralı (§7.7) ------------------------------------------------------------------------
+
+LEVEL_NONE = "none"
+LEVEL_WARNING = "warning"
+LEVEL_BLOCKED = "blocked"
+
+# Ay adına göre yönelme eki ("12 Ekim'e", "3 Mart'a"): Eylül ve Ekim ince ünlülü, diğerleri kalın.
+_MONTH_DATIVE = {1: "a", 2: "a", 3: "a", 4: "a", 5: "a", 6: "a", 7: "a", 8: "a", 9: "e", 10: "e", 11: "a", 12: "a"}
+
+
+def date_with_dative(day):
+    """`2026-10-12` → "12 Ekim'e"."""
+    return f"{day.day} {date_format(day, 'F')}'{_MONTH_DATIVE[day.month]}"
+
+
+def no_show_window_start(today):
+    """Gelmedi penceresinin ilk günü (dahil): randevu tarihi ≥ bugün − NO_SHOW_WINDOW_DAYS gün (PROJECT.md §15)."""
+    return today - datetime.timedelta(days=_config("NO_SHOW_WINDOW_DAYS"))
+
+
+class BookingRestriction(NamedTuple):
+    level: str  # LEVEL_NONE, LEVEL_WARNING ya da LEVEL_BLOCKED
+    message: str
+    until: datetime.date | None  # yalnızca engelde: bu tarihte yeniden randevu alınabilir
+
+
+NO_RESTRICTION = BookingRestriction(LEVEL_NONE, "", None)
+
+
+def get_booking_restriction(user, today=None):
+    """`(level, message, until)`; değer kaydedilmez, her seferinde hesaplanır (PROJECT.md §7.7, §15).
+
+    Engelli: penceredeki Gelmedi sayısı `NO_SHOW_BLOCK_AT` ya da fazlası ve `bugün < son Gelmedi + NO_SHOW_BLOCK_DAYS`.
+    Uyarı: engelli değil ve sayı `NO_SHOW_WARN_AT` ya da fazlası. Sahip bir işareti düzeltirse kısıt kendiliğinden kalkar.
+    """
+    today = today or timezone.localtime().date()
+    stats = Appointment.objects.filter(
+        customer=user, status=Appointment.Status.NO_SHOW, date__gte=no_show_window_start(today)
+    ).aggregate(total=Count("pk"), last=Max("date"))
+    count, last = stats["total"], stats["last"]
+    if not count:
+        return NO_RESTRICTION
+
+    window = _config("NO_SHOW_WINDOW_DAYS")
+    block_days = _config("NO_SHOW_BLOCK_DAYS")
+    if count >= _config("NO_SHOW_BLOCK_AT") and today < last + datetime.timedelta(days=block_days):
+        until = last + datetime.timedelta(days=block_days)
+        message = f"Son {window} günde {count} randevuna gelmediğin için {date_with_dative(until)} kadar yeni randevu alamazsın."
+        return BookingRestriction(LEVEL_BLOCKED, message, until)
+    if count >= _config("NO_SHOW_WARN_AT"):
+        message = f"Son {window} günde {count} randevuna gelmedin. Bir kez daha olursa {block_days} gün boyunca randevu alamazsın."
+        return BookingRestriction(LEVEL_WARNING, message, None)
+    return NO_RESTRICTION
+
+
 # --- Randevu oluşturma (§7.3) ---------------------------------------------------------------------
 
 
@@ -269,6 +325,9 @@ def create_appointment(user, shop, service, day, start_time, note="", now=None):
     now = timezone.localtime(now)
     if user.role != User.Role.CUSTOMER:
         raise BookingError("Yalnızca müşteri hesapları randevu alabilir.")
+    restriction = get_booking_restriction(user, now.date())
+    if restriction.level == LEVEL_BLOCKED:
+        raise BookingError(restriction.message)
     note = (note or "").strip()
     if len(note) > NOTE_MAX_LENGTH:
         raise BookingError(f"Not en fazla {NOTE_MAX_LENGTH} karakter olabilir.")
@@ -582,9 +641,10 @@ def count_recent_no_shows(customer_ids, today):
     ids = set(customer_ids)
     if not ids:
         return {}
-    since = today - datetime.timedelta(days=_config("NO_SHOW_WINDOW_DAYS"))
     rows = (
-        Appointment.objects.filter(customer_id__in=ids, status=Appointment.Status.NO_SHOW, date__gte=since)
+        Appointment.objects.filter(
+            customer_id__in=ids, status=Appointment.Status.NO_SHOW, date__gte=no_show_window_start(today)
+        )
         .order_by()
         .values("customer_id")
         .annotate(total=Count("pk"))
