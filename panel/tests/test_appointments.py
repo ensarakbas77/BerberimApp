@@ -148,7 +148,8 @@ class RowContentTests(ListTestCase):
         )
         response = self.client.get(LIST_URL)
         self.assertContains(response, "@ali")
-        self.assertContains(response, "10:00–10:30")
+        self.assertContains(response, '<span class="schedule-row__time">10:00</span>', html=True)
+        self.assertContains(response, '<span class="schedule-row__end">–10:30</span>', html=True)
         self.assertContains(response, "Saç kesimi")
         self.assertContains(response, "30 dk")
         self.assertContains(response, '<a href="tel:+905321234567">0532 123 45 67</a>', html=True)
@@ -183,7 +184,8 @@ class RowContentTests(ListTestCase):
         response = self.client.get(LIST_URL)
         counts = {row.customer.username: row.recent_no_shows for row in response.context["rows"]}
         self.assertEqual(counts, {"ali": 1, "veli": 0})
-        self.assertContains(response, "Son 90 günde 1 randevuya gelmedi.", count=1)
+        self.assertContains(response, "1 kez gelmedi", count=1)
+        self.assertContains(response, "(son 90 günde)", count=1)
 
     def test_cancelled_rows_show_who_cancelled_and_offer_no_actions(self):
         self.add("ali", MONDAY, T(16, 0), Status.CANCELLED, cancelled_by="shop", cancel_reason="Berber hastalandı")
@@ -241,7 +243,11 @@ class CountersAndFilterTests(ListTestCase):
         self.assertEqual(urls["bekleyen"], "/panel/randevular/?durum=bekleyen")
         self.assertEqual(urls[""], "/panel/randevular/?tarih=2026-09-22")
         self.assertEqual([item["value"] for item in response.context["filters"] if item["active"]], ["tamamlandi"])
-        self.assertContains(response, '<a href="/panel/randevular/?tarih=2026-09-22&amp;durum=tamamlandi" aria-current="true">Tamamlandı</a>', html=True)
+        self.assertContains(
+            response,
+            '<a class="chip" href="/panel/randevular/?tarih=2026-09-22&amp;durum=tamamlandi" aria-current="true">Tamamlandı</a>',
+            html=True,
+        )
 
     def test_a_filter_without_matches_says_so(self):
         response = self.client.get(f"{LIST_URL}?tarih=2026-09-21&durum=planlandi")

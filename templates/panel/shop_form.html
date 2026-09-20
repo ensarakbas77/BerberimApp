@@ -12,42 +12,59 @@
 <h1>{% if shop %}Dükkan bilgileri{% else %}Dükkanını kur{% endif %}</h1>
 {% if not shop %}
 <p class="lead">Önce dükkanın temel bilgilerini gir. Çalışma saatleri ve hizmetleri sonraki adımda ayarlarsın.</p>
+{% else %}
+<p class="publish-line">
+  {% if shop.is_published %}<span class="badge badge--open">Yayında</span>{% else %}<span class="badge badge--closed">Yayında değil</span>{% endif %}
+  <a href="{% url 'panel:home' %}">Yayın ayarı Bugün sayfasında</a>
+</p>
 {% endif %}
 
-<form method="post" novalidate class="panel form-panel">
+<form method="post" novalidate class="settings-form">
   {% csrf_token %}
   {% if form.non_field_errors %}
   <div class="alert alert--error form-alert" role="alert">
-    {% for error in form.non_field_errors %}<p class="alert__text">{{ error }}</p>{% endfor %}
+    <svg class="icon alert__icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#hata"></use></svg>
+    <div class="alert__text">{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>
   </div>
   {% elif form.errors %}
   <div class="alert alert--error form-alert" role="alert">
+    <svg class="icon alert__icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#hata"></use></svg>
     <p class="alert__text">Formda düzeltilmesi gereken alanlar var.</p>
   </div>
   {% endif %}
 
-  {% include "partials/_form_field.html" with field=form.name %}
-  {% include "partials/_form_field.html" with field=form.description %}
-  {% include "partials/_form_field.html" with field=form.phone %}
-  {% include "partials/_form_field.html" with field=form.neighborhood %}
-  {% include "partials/_form_field.html" with field=form.address %}
+  <section class="panel form-section" aria-labelledby="section-shop">
+    <h2 id="section-shop">Dükkan</h2>
+    {% include "partials/_form_field.html" with field=form.name %}
+    {% include "partials/_form_field.html" with field=form.description %}
+  </section>
 
-  <div class="field">
-    <span class="field__label" id="location-label">Konum (isteğe bağlı)</span>
+  <section class="panel form-section" aria-labelledby="section-contact">
+    <h2 id="section-contact">İletişim</h2>
+    {% include "partials/_form_field.html" with field=form.phone %}
+    {% include "partials/_form_field.html" with field=form.neighborhood %}
+    {% include "partials/_form_field.html" with field=form.address %}
+  </section>
+
+  <section class="panel form-section" aria-labelledby="location-label">
+    <h2 id="location-label">Konum (isteğe bağlı)</h2>
     <div id="location-map" class="map" aria-labelledby="location-label" hidden></div>
     <p class="field__hint js-only" id="location-status" aria-live="polite">Harita yükleniyor…</p>
     <noscript><p class="field__hint">Harita için JavaScript gerekir. Konumu boş bırakabilirsin; dükkanın yine kaydedilir.</p></noscript>
-    <p class="field__hint" data-location-help hidden>Haritaya dokunarak dükkanının yerini işaretle. İşaretçiyi sürükleyerek düzeltebilirsin. Klavyeyle: haritayı kaydır, ortadaki noktayı seçmek için Enter'a bas.</p>
-    <div><button type="button" class="btn btn--secondary" data-location-clear hidden>Konumu kaldır</button></div>
+    <p class="field__hint" data-location-help hidden>Dükkanının yerine dokun. İşaretçiyi sürükleyerek düzeltebilirsin. Klavyeyle: haritayı kaydır, ortadaki noktayı seçmek için Enter'a bas.</p>
+    <div><button type="button" class="btn btn--secondary btn--sm" data-location-clear hidden>Konumu kaldır</button></div>
     {{ form.latitude }}
     {{ form.longitude }}
-  </div>
+  </section>
 
-  {% include "partials/_form_checkbox.html" with field=form.show_prices %}
-  {% include "partials/_form_field.html" with field=form.slot_interval_minutes %}
-  {% include "partials/_form_field.html" with field=form.booking_window_days %}
+  <section class="panel form-section" aria-labelledby="section-booking">
+    <h2 id="section-booking">Randevu ayarları</h2>
+    {% include "partials/_form_checkbox.html" with field=form.show_prices %}
+    {% include "partials/_form_field.html" with field=form.slot_interval_minutes %}
+    {% include "partials/_form_field.html" with field=form.booking_window_days %}
+  </section>
 
-  <button type="submit" class="btn btn--primary btn--block">{% if shop %}Kaydet{% else %}Dükkanı oluştur{% endif %}</button>
+  <button type="submit" class="btn btn--primary btn--block settings-form__submit" data-loading-text="Kaydediliyor…">{% if shop %}Kaydet{% else %}Dükkanı oluştur{% endif %}</button>
 </form>
 {% endblock %}
 

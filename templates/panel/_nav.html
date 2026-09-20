@@ -1,12 +1,33 @@
-{% with current=request.resolver_match.url_name %}
-<nav class="panel-nav" aria-label="Panel menüsü">
-  <ul>
-    <li><a href="{% url 'panel:home' %}"{% if current == "home" %} aria-current="page"{% endif %}>Özet</a></li>
-    <li><a href="{% url 'panel:appointments' %}"{% if current == "appointments" or current == "appointment_detail" %} aria-current="page"{% endif %}>Randevular</a></li>
-    <li><a href="{% url 'panel:shop' %}"{% if current == "shop" %} aria-current="page"{% endif %}>Dükkan</a></li>
-    <li><a href="{% url 'panel:hours' %}"{% if current == "hours" %} aria-current="page"{% endif %}>Çalışma saatleri</a></li>
-    <li><a href="{% url 'panel:services' %}"{% if current == "services" or current == "service_create" or current == "service_edit" %} aria-current="page"{% endif %}>Hizmetler</a></li>
-    <li><a href="{% url 'panel:closures' %}"{% if current == "closures" %} aria-current="page"{% endif %}>Kapalı günler</a></li>
+{% comment %}Panel menüsü (FRONTEND-TASARIM.md §9.3). Masaüstü: sol yan menü (Bugün, Randevular; "Dükkan" başlığı altında dört ayar sayfası;
+en altta Dükkanımı gör ve Profil). Mobil: alt sekme çubuğu ana bölümleri taşır; dükkan ayar sayfalarının üstünde yatay kaydırılan çip menü görünür.{% endcomment %}
+{% with ns=request.resolver_match.namespace name=request.resolver_match.url_name %}
+<nav class="panel-side" aria-label="Panel menüsü">
+  <ul class="panel-side__list">
+    <li><a href="{% url 'panel:home' %}"{% if name == "home" %} aria-current="page"{% endif %}>Bugün</a></li>
+    <li><a href="{% url 'panel:appointments' %}"{% if name == "appointments" or name == "appointment_detail" %} aria-current="page"{% endif %}>Randevular</a></li>
+  </ul>
+  <p class="panel-side__title">Dükkan</p>
+  <ul class="panel-side__list">
+    <li><a href="{% url 'panel:shop' %}"{% if name == "shop" %} aria-current="page"{% endif %}>Bilgiler</a></li>
+    <li><a href="{% url 'panel:hours' %}"{% if name == "hours" %} aria-current="page"{% endif %}>Çalışma saatleri</a></li>
+    <li><a href="{% url 'panel:services' %}"{% if name == "services" or name == "service_create" or name == "service_edit" %} aria-current="page"{% endif %}>Hizmetler</a></li>
+    <li><a href="{% url 'panel:closures' %}"{% if name == "closures" %} aria-current="page"{% endif %}>Kapalı günler</a></li>
+  </ul>
+  <ul class="panel-side__list panel-side__foot">
+    <li><a href="{{ shop.get_absolute_url }}">Dükkanımı gör</a></li>
+    <li><a href="{% url 'accounts:profile' %}">Profil</a></li>
   </ul>
 </nav>
+
+{% if name != "home" and name != "appointments" and name != "appointment_detail" %}
+<nav class="panel-chips" aria-label="Dükkan ayarları">
+  <ul class="chip-row">
+    <li><a class="chip" href="{% url 'panel:shop' %}"{% if name == "shop" %} aria-current="page"{% endif %}>Bilgiler</a></li>
+    <li><a class="chip" href="{% url 'panel:hours' %}"{% if name == "hours" %} aria-current="page"{% endif %}>Çalışma saatleri</a></li>
+    <li><a class="chip" href="{% url 'panel:services' %}"{% if name == "services" or name == "service_create" or name == "service_edit" %} aria-current="page"{% endif %}>Hizmetler</a></li>
+    <li><a class="chip" href="{% url 'panel:closures' %}"{% if name == "closures" %} aria-current="page"{% endif %}>Kapalı günler</a></li>
+    <li><a class="chip" href="{{ shop.get_absolute_url }}">Dükkanımı gör</a></li>
+  </ul>
+</nav>
+{% endif %}
 {% endwith %}

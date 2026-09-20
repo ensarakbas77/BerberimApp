@@ -4,38 +4,41 @@
 {% block title %}Randevu: @{{ appointment.customer.username }} | Berberim{% endblock %}
 
 {% block panel_content %}
-<p class="back-link"><a href="{{ list_url }}">Randevulara dön</a></p>
+<p class="back-link"><a href="{{ list_url }}"><svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#sol-ok"></use></svg>Randevulara dön</a></p>
 <h1>Randevu</h1>
 
-<section class="panel form-panel detail-panel" aria-labelledby="summary-title">
-  <div class="appointment__head">
-    <h2 id="summary-title" class="appointment__shop">@{{ appointment.customer.username }}</h2>
-    {% include "partials/_status_badge.html" with status=appointment.display_status %}
+{# Mevcut randevunun fişi: sade hâli (FRONTEND-TASARIM.md §10.8) #}
+<section class="receipt detail-receipt" aria-labelledby="summary-title">
+  <div class="receipt__body">
+    <div class="schedule-row__head">
+      <h2 id="summary-title" class="detail-receipt__user">@{{ appointment.customer.username }}</h2>
+      {% if appointment.recent_no_shows %}<span class="badge badge--no-show">{{ appointment.recent_no_shows }} kez gelmedi<span class="visually-hidden"> (son {{ appointment.no_show_window_days }} günde)</span></span>{% endif %}
+      {% include "partials/_status_badge.html" with status=appointment.display_status %}
+    </div>
+    <p class="receipt__line">
+      <span>{{ appointment.service_name }}</span>
+      <span class="tabular">{{ appointment.duration_minutes }} dk</span>
+      {% if appointment.price is not None %}<span class="tabular">{{ appointment.price|price }}</span>{% endif %}
+    </p>
+    {% if appointment.customer.phone %}<p class="receipt__line">Telefon: <a href="tel:{{ appointment.customer.phone|tel_href }}">{{ appointment.customer.phone|phone }}</a></p>{% endif %}
+    {% if appointment.customer_note %}<p class="receipt__line">Müşteri notu: {{ appointment.customer_note }}</p>{% endif %}
+    {% if appointment.shop_note %}<p class="receipt__line">Senin notun: {{ appointment.shop_note }}</p>{% endif %}
   </div>
-  <p class="appointment__when tabular">
-    <time datetime="{{ appointment.date|date:'Y-m-d' }}">{{ appointment.date|date:"j F Y l" }}</time>
-    <span>{{ appointment.start_time|time:"H:i" }}–{{ appointment.end_time|time:"H:i" }}</span>
-  </p>
-  <p class="appointment__service">
-    <span>{{ appointment.service_name }}</span>
-    <span class="tabular">{{ appointment.duration_minutes }} dk</span>
-    {% if appointment.price is not None %}<span class="tabular">{{ appointment.price|price }}</span>{% endif %}
-  </p>
-  {% if appointment.customer.phone %}<p class="appointment__info">Telefon: <a href="tel:{{ appointment.customer.phone|tel_href }}">{{ appointment.customer.phone|phone }}</a></p>{% endif %}
-  {% if appointment.customer_note %}<p class="appointment__info">Müşteri notu: {{ appointment.customer_note }}</p>{% endif %}
-  {% if appointment.shop_note %}<p class="appointment__info">Senin notun: {{ appointment.shop_note }}</p>{% endif %}
-  {% if appointment.recent_no_shows %}<p class="shop-appointment__warn">Son {{ appointment.no_show_window_days }} günde {{ appointment.recent_no_shows }} randevuya gelmedi.</p>{% endif %}
-  {% if appointment.status == "cancelled" %}
-  <p class="appointment__info">{% if appointment.cancelled_by == "shop" %}Sen iptal ettin{% if appointment.cancel_reason %}: {{ appointment.cancel_reason }}{% endif %}{% else %}Müşteri iptal etti.{% endif %}</p>
-  {% endif %}
-
-  {% if appointment.actions.complete or appointment.actions.no_show or appointment.actions.unmark %}
-  <div class="shop-appointment__actions">
-    {% if appointment.actions.complete %}{% include "panel/_status_button.html" with action="complete" label="Tamamlandı" return_to="detay" %}{% endif %}
-    {% if appointment.actions.no_show %}{% include "panel/_status_button.html" with action="no_show" label="Gelmedi" return_to="detay" %}{% endif %}
-    {% if appointment.actions.unmark %}{% include "panel/_status_button.html" with action="unmark" label="İşareti kaldır" return_to="detay" %}{% endif %}
+  <div class="receipt__perf" aria-hidden="true"></div>
+  <div class="receipt__body">
+    <p class="receipt__date"><time datetime="{{ appointment.date|date:'Y-m-d' }}">{{ appointment.date|date:"j F Y l" }}</time></p>
+    <p class="detail-receipt__time tabular">{{ appointment.start_time|time:"H:i" }}–{{ appointment.end_time|time:"H:i" }}</p>
+    {% if appointment.status == "cancelled" %}
+    <p class="receipt__line">{% if appointment.cancelled_by == "shop" %}Sen iptal ettin{% if appointment.cancel_reason %}: {{ appointment.cancel_reason }}{% endif %}{% else %}Müşteri iptal etti.{% endif %}</p>
+    {% endif %}
+    {% if appointment.actions.complete or appointment.actions.no_show or appointment.actions.unmark %}
+    <div class="schedule-row__actions">
+      {% if appointment.actions.complete %}{% include "panel/_status_button.html" with action="complete" label="Tamamlandı" return_to="detay" %}{% endif %}
+      {% if appointment.actions.no_show %}{% include "panel/_status_button.html" with action="no_show" label="Gelmedi" return_to="detay" %}{% endif %}
+      {% if appointment.actions.unmark %}{% include "panel/_status_button.html" with action="unmark" label="İşareti kaldır" return_to="detay" %}{% endif %}
+    </div>
+    {% endif %}
   </div>
-  {% endif %}
 </section>
 
 {% if edit_form %}
@@ -46,17 +49,19 @@
   <form method="get" action="{% url 'panel:appointment_detail' appointment.pk %}" class="slot-picker" data-slot-picker
         data-api="{% url 'panel:appointment_slots' appointment.pk %}" data-current-service="{{ appointment.service_id }}"
         data-current-date="{{ appointment.date|date:'Y-m-d' }}" data-current-time="{{ appointment.start_time|time:'H:i' }}">
-    <div class="field">
-      <label class="field__label" for="picker-service">Hizmet</label>
-      <select id="picker-service" name="hizmet" class="input">
-        {% for choice in edit_services %}
-        <option value="{{ choice.pk }}"{% if choice.pk == selected_service.pk %} selected{% endif %}>{{ choice.name }}, {{ choice.duration_minutes }} dk{% if not choice.is_active %} (pasif){% endif %}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="field">
-      <label class="field__label" for="picker-date">Gün</label>
-      <input type="date" id="picker-date" name="tarih" class="input" value="{{ selected_day|date:'Y-m-d' }}" min="{{ min_date|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}">
+    <div class="slot-picker__fields">
+      <div class="field">
+        <label class="field__label" for="picker-service">Hizmet</label>
+        <select id="picker-service" name="hizmet" class="input">
+          {% for choice in edit_services %}
+          <option value="{{ choice.pk }}"{% if choice.pk == selected_service.pk %} selected{% endif %}>{{ choice.name }}, {{ choice.duration_minutes }} dk{% if not choice.is_active %} (pasif){% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="picker-date">Gün</label>
+        <input type="date" id="picker-date" name="tarih" class="input" value="{{ selected_day|date:'Y-m-d' }}" min="{{ min_date|date:'Y-m-d' }}" max="{{ max_date|date:'Y-m-d' }}">
+      </div>
     </div>
     <button type="submit" class="btn btn--secondary" data-picker-submit>Saatleri göster</button>
   </form>
@@ -67,7 +72,8 @@
     <input type="hidden" name="date" value="{{ selected_day|date:'Y-m-d' }}" data-mirror="date">
     {% if edit_form.non_field_errors %}
     <div class="alert alert--error form-alert" role="alert">
-      {% for error in edit_form.non_field_errors %}<p class="alert__text">{{ error }}</p>{% endfor %}
+      <svg class="icon alert__icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#hata"></use></svg>
+      <div class="alert__text">{% for error in edit_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>
     </div>
     {% endif %}
     <fieldset class="booking-step">
@@ -92,7 +98,7 @@
       <p class="field__hint">Hizmet ve günü değiştirmediysen saat seçmeden yalnızca notu kaydedebilirsin.</p>
     </fieldset>
     {% include "partials/_form_field.html" with field=edit_form.shop_note %}
-    <button type="submit" class="btn btn--primary">Değişiklikleri kaydet</button>
+    <button type="submit" class="btn btn--primary" data-loading-text="Kaydediliyor…">Değişiklikleri kaydet</button>
   </form>
 </section>
 {% endif %}
@@ -110,7 +116,7 @@
 {% endif %}
 
 {% if not edit_form and not cancel_form %}
-<div class="panel form-panel detail-panel">
+<div class="empty detail-panel">
   <p>{% if appointment.status == "cancelled" %}İptal edilen randevu değişmez.{% else %}Başlamış ya da geçmiş randevu düzenlenemez ve iptal edilemez.{% endif %}</p>
 </div>
 {% endif %}

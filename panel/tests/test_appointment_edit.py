@@ -61,7 +61,8 @@ class DetailPageTests(EditTestCase):
         self.assertContains(response, '<a href="tel:+905321234567">0532 123 45 67</a>', html=True)
         self.assertContains(response, "Müşteri notu: Yanları kısa")
         self.assertNotContains(response, "ali@example.com")
-        self.assertContains(response, '<a href="/panel/randevular/?tarih=2026-09-21">Randevulara dön</a>', html=True)
+        self.assertContains(response, 'href="/panel/randevular/?tarih=2026-09-21"')
+        self.assertContains(response, "Randevulara dön")
 
     def test_the_slot_list_is_rendered_by_the_server_and_includes_the_own_slot(self):
         response = self.client.get(self.url)

@@ -1,8 +1,9 @@
 {% comment %}Kullanım: {% include "panel/_summary.html" with summary=summary %}
-Günün sayaçları: satırdaki rozetle aynı görünen duruma göre sayılır; iptaller sayaçta yoktur (PROJECT.md §15).{% endcomment %}
-<ul class="stat-row" aria-label="Günün özeti">
-  <li class="stat"><span class="stat__num tabular">{{ summary.scheduled }}</span><span class="stat__label">Planlandı</span></li>
-  <li class="stat"><span class="stat__num tabular">{{ summary.completed }}</span><span class="stat__label">Tamamlandı</span></li>
-  <li class="stat"><span class="stat__num tabular">{{ summary.no_show }}</span><span class="stat__label">Gelmedi</span></li>
-  <li class="stat"><span class="stat__num tabular">{{ summary.unmarked }}</span><span class="stat__label">İşaretlenmeyi bekleyen</span></li>
+Günün sayaçları (FRONTEND-TASARIM.md §10.7): kart değil, tek satırda duran rozetler. Satırdaki rozetle aynı görünen duruma göre sayılır;
+iptaller sayaçta yoktur, işaretlenmeyi bekleyenler kendi bölümünde sayılır (PROJECT.md §15).{% endcomment %}
+<ul class="counters" aria-label="Günün özeti">
+  <li class="badge badge--scheduled"><span class="tabular">{{ summary.scheduled }}</span> planlandı</li>
+  <li class="badge badge--completed"><span class="tabular">{{ summary.completed }}</span> tamamlandı</li>
+  <li class="badge badge--no-show"><span class="tabular">{{ summary.no_show }}</span> gelmedi</li>
+  {% if summary.unmarked %}<li class="badge badge--unmarked"><span class="tabular">{{ summary.unmarked }}</span> işaretlenmeyi bekleyen</li>{% endif %}
 </ul>

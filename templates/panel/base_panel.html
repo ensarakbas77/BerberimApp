@@ -1,10 +1,15 @@
 {% extends "base.html" %}
 
-{% comment %}Panel sayfalarının ortak iskeleti: dükkan varsa panel menüsü. `shop` bağlamda verilir.{% endcomment %}
+{% comment %}Panel sayfalarının ortak iskeleti (FRONTEND-TASARIM.md §9.3): dükkan varsa masaüstünde 240 px yan menü, mobilde ayar sayfalarında çip menü.
+`shop` bağlamda verilir; dükkanı olmayan sahipte menü yoktur (kurulum formu tek sütun).{% endcomment %}
 
 {% block content %}
-{% if shop %}{% include "panel/_nav.html" %}{% endif %}
-{% block panel_content %}{% endblock %}
+<div class="panel-layout{% if not shop %} panel-layout--single{% endif %}">
+  {% if shop %}{% include "panel/_nav.html" %}{% endif %}
+  <div class="panel-main">
+    {% block panel_content %}{% endblock %}
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}

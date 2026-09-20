@@ -713,6 +713,11 @@ select.input {
   list-style: none;
   overflow-x: auto;
   scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.chip-row::-webkit-scrollbar {
+  display: none;
 }
 
 .chip-row > li {
@@ -912,6 +917,7 @@ select.input {
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   background: var(--surface);
+  overflow: hidden;
 }
 
 .schedule-row {
@@ -941,8 +947,13 @@ select.input {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: var(--s-2);
+}
+
+@media (min-width: 640px) {
+  .schedule-row__head > :last-child {
+    margin-left: auto;
+  }
 }
 
 .schedule-row__user {

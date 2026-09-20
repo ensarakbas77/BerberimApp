@@ -1,6 +1,21 @@
-{% comment %}Yayın durumu kutusu ve (yalnızca zorunlu bir eksik varsa) kurulum listesi. Özet sayfasında kurulum bitmemişse
-randevuların önünde, bitmişse sonunda gösterilir (PROJECT.md §13 Faz 6).{% endcomment %}
-<div class="panel-grid">
+{% load static %}{% comment %}Kurulum kontrol listesi (yalnızca zorunlu bir eksik varsa) ve yayın durumu kutusu (FRONTEND-TASARIM.md §10.7).
+Özet sayfasında kurulum bitmemişse randevuların önünde, bitmişse sonunda gösterilir. Onay ikonlu satırlar; eksik olanlar bağlantıdır.{% endcomment %}
+<div class="setup">
+  {% if blockers %}
+  <section class="panel" aria-labelledby="setup-title">
+    <h2 id="setup-title">Kurulum</h2>
+    <ul class="checklist">
+      {% for item in checklist %}
+      <li class="checklist__item{% if item.done %} checklist__item--done{% endif %}">
+        <span class="checklist__mark" aria-hidden="true">{% if item.done %}<svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#onay"></use></svg>{% endif %}</span>
+        <span class="checklist__label">{{ item.label }}{% if item.optional and not item.done %} <span class="checklist__optional">(isteğe bağlı)</span>{% endif %}</span>
+        <a class="checklist__link" href="{{ item.url }}">{% if item.done %}Düzenle{% else %}Tamamla{% endif %}<span class="visually-hidden">: {{ item.label }}</span></a>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
   <section class="panel" aria-labelledby="publish-title">
     <h2 id="publish-title">{{ shop.name }}</h2>
     {% if shop.is_published %}
@@ -26,25 +41,4 @@ randevuların önünde, bitmişse sonunda gösterilir (PROJECT.md §13 Faz 6).{%
     {% endif %}
     {% endif %}
   </section>
-
-  {% if blockers %}
-  <section class="panel" aria-labelledby="setup-title">
-    <h2 id="setup-title">Kurulum</h2>
-    <ul class="checklist">
-      {% for item in checklist %}
-      <li>
-        <span class="checklist__label">{{ item.label }}</span>
-        {% if item.done %}
-        <span class="badge badge--open">Tamam</span>
-        {% elif item.optional %}
-        <span class="badge badge--closed">İsteğe bağlı</span>
-        {% else %}
-        <span class="badge badge--unmarked">Eksik</span>
-        {% endif %}
-        <a class="checklist__link" href="{{ item.url }}">{% if item.done %}Düzenle{% else %}Tamamla{% endif %}<span class="visually-hidden">: {{ item.label }}</span></a>
-      </li>
-      {% endfor %}
-    </ul>
-  </section>
-  {% endif %}
 </div>
