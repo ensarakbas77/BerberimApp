@@ -417,7 +417,7 @@ class HeaderLinksTests(TestCase):
         login(self.client, "sahip")
         response = self.client.get("/hesap/profil/")
         self.assertNotContains(response, "Dükkanımı gör")
-        self.assertContains(response, 'href="/panel/"')
+        self.assertContains(response, 'href="/panel/dukkan/"')  # dükkanı olmayan sahip: kurulum
         self.assertNotContains(response, 'href="/berberler/"')
 
     def test_owner_with_a_shop_sees_view_shop_even_before_publishing(self):

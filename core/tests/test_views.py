@@ -41,10 +41,13 @@ class HomeTests(TestCase):
         response = self.client.get("/")
         self.assertContains(response, '<html lang="tr">')
         self.assertContains(response, 'name="viewport"')
-        self.assertContains(response, "family=Archivo:wdth,wght@62..125,100..900")
-        self.assertContains(response, "pole-bar")
-        self.assertContains(response, 'data-nav-toggle')
+        self.assertContains(response, "family=Figtree:wght@400;500;600;700&family=Unbounded:wght@500;700")
+        for stylesheet in ("tokens.css", "base.css", "components.css", "pages.css"):
+            self.assertContains(response, f"css/{stylesheet}")
+        self.assertContains(response, "site-header__login")  # ziyaretçiye mobilde "Giriş yap"
         self.assertContains(response, "site-footer")
+        for old in ("Archivo", "pole-bar", "data-nav-toggle", "user-menu", 'class="tabbar"'):
+            self.assertNotContains(response, old)
 
     def test_500_page_is_standalone_and_turkish(self):
         html = render_to_string("500.html")

@@ -1,48 +1,41 @@
-{% load static %}
-<div class="pole-bar" aria-hidden="true"></div>
+{% comment %}Üst başlık (FRONTEND-TASARIM.md §9.1): 56 px; masaüstünde (≥1024 px) sağda rol menüsü, mobilde ziyaretçiye "Giriş yap".
+Giriş yapmış kullanıcılar mobilde alt sekme çubuğunu kullanır (partials/_tabbar.html).{% endcomment %}
+{% with ns=request.resolver_match.namespace name=request.resolver_match.url_name %}
 <header class="site-header">
   <div class="container site-header__inner">
     <a class="brand" href="{% url 'core:home' %}">
-      <svg class="brand__mark" viewBox="0 0 24 40" aria-hidden="true" focusable="false">
-        <use href="{% static 'img/logo.svg' %}#mark"></use>
-      </svg>
-      <span>Berberim</span>
+      <span class="visually-hidden">Berberim</span>
+      <span aria-hidden="true">Berber<span class="brand__i">ı</span>m</span>
     </a>
-    <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="site-nav">
-      <span class="nav-toggle__bars" aria-hidden="true"></span>
-      <span class="visually-hidden">Menü</span>
-    </button>
-    {# Menü öğeleri (PROJECT.md §8) sayfaları geldikçe eklenir; ölü link bırakılmaz. #}
-    <nav id="site-nav" class="site-nav" aria-label="Ana menü">
+    {% if not user.is_authenticated %}
+    <a class="btn btn--quiet btn--sm site-header__login" href="{% url 'accounts:login' %}">Giriş yap</a>
+    {% endif %}
+    <nav class="site-nav" aria-label="Ana menü">
       <ul>
         {% if user.is_authenticated %}
           {% if user.role == "owner" %}
-            <li><a href="{% url 'panel:home' %}">Panel</a></li>
             {# Dükkanı olmayan sahipte `user.shop` boş sayılır (ObjectDoesNotExist şablonda sessizdir). #}
             {% if user.shop %}
-            <li><a href="{% url 'panel:appointments' %}">Randevular</a></li>
+            <li><a href="{% url 'panel:home' %}"{% if ns == "panel" and name == "home" %} aria-current="page"{% endif %}>Bugün</a></li>
+            <li><a href="{% url 'panel:appointments' %}"{% if ns == "panel" and name == "appointments" or ns == "panel" and name == "appointment_detail" %} aria-current="page"{% endif %}>Randevular</a></li>
+            <li><a href="{% url 'panel:shop' %}"{% if ns == "panel" and name != "home" and name != "appointments" and name != "appointment_detail" %} aria-current="page"{% endif %}>Dükkan</a></li>
             <li><a href="{{ user.shop.get_absolute_url }}">Dükkanımı gör</a></li>
+            {% else %}
+            <li><a href="{% url 'panel:shop' %}"{% if ns == "panel" %} aria-current="page"{% endif %}>Dükkan</a></li>
             {% endif %}
-            <li>{% include "partials/_logout_form.html" %}</li>
           {% else %}
-            <li><a href="{% url 'shops:list' %}">Berberler</a></li>
-            <li><a href="{% url 'bookings:my_appointments' %}">Randevularım</a></li>
-            <li>
-              <details class="user-menu">
-                <summary>@{{ user.username }}</summary>
-                <ul>
-                  <li><a href="{% url 'accounts:profile' %}">Profil</a></li>
-                  <li>{% include "partials/_logout_form.html" %}</li>
-                </ul>
-              </details>
-            </li>
+            <li><a href="{% url 'shops:list' %}"{% if ns == "shops" or name == "book" %} aria-current="page"{% endif %}>Berberler</a></li>
+            <li><a href="{% url 'bookings:my_appointments' %}"{% if name == "my_appointments" %} aria-current="page"{% endif %}>Randevularım</a></li>
           {% endif %}
+          <li><a href="{% url 'accounts:profile' %}"{% if ns == "accounts" and name == "profile" %} aria-current="page"{% endif %}>Profil</a></li>
+          <li>{% include "partials/_logout_form.html" %}</li>
         {% else %}
-          <li><a href="{% url 'shops:list' %}">Berberler</a></li>
-          <li><a href="{% url 'accounts:login' %}">Giriş yap</a></li>
-          <li><a href="{% url 'accounts:register' %}">Kayıt ol</a></li>
+          <li><a href="{% url 'shops:list' %}"{% if ns == "shops" %} aria-current="page"{% endif %}>Berberler</a></li>
+          <li><a href="{% url 'accounts:login' %}"{% if ns == "accounts" and name == "login" %} aria-current="page"{% endif %}>Giriş yap</a></li>
+          <li><a class="btn btn--primary btn--sm" href="{% url 'accounts:register' %}">Kayıt ol</a></li>
         {% endif %}
       </ul>
     </nav>
   </div>
 </header>
+{% endwith %}

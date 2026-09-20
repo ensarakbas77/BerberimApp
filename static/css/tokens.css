@@ -1,53 +1,50 @@
-/* Tasarım tokenları — PROJECT.md §9 */
+/* Tasarım tokenları: yalnızca değişkenler (FRONTEND-TASARIM.md §5, §6, §7) */
 :root {
-  /* Renkler (§9.2) */
-  --bg: #F5F8FB;              /* Fayans: sayfa zemini */
-  --surface: #FFFFFF;         /* Önlük beyazı: paneller, formlar */
-  --ink: #14213D;             /* Lacivert mürekkep: metin ve başlıklar */
-  --ink-2: #4A5670;           /* ikincil metin */
-  --line: #D9E1EC;            /* kenarlıklar, ayırıcılar */
-  --cobalt: #1F4FD8;          /* birincil buton, link, seçili saat */
-  --cobalt-tint: #E6EDFC;     /* seçili zeminler, "Planlandı" rozeti */
-  --pole-red: #D62839;        /* yalnızca marka: logo ve direk şeridi */
-  --mint: #DDF2EA;            /* "Açık" rozeti, boş saat vurgusu, bilgi kutuları */
-  --mint-ink: #0F6B4F;        /* nane zemin üstündeki metin */
-  --lemon: #FFC53D;           /* küçük vurgular; metin zemini olarak kullanılmaz */
-  --success: #147A38;         /* "Tamamlandı" (AA için #15803D'den koyulaştırıldı, PROJECT.md §15) */
-  --success-tint: #DCF3E6;
-  --danger: #B42318;          /* "Gelmedi", hata mesajları, iptal */
-  --danger-tint: #FDE7E5;
-  --neutral-tint: #EDF1F6;    /* "İptal edildi", pasif öğeler */
+  /* Renkler (§5.1) */
+  --bg: #F2F5F3;             /* Kolonya camı: sayfa zemini */
+  --surface: #FFFFFF;        /* Köpük: kartlar, formlar, çubuklar */
+  --ink: #17332A;            /* Koyu şişe yeşili: metin, başlıklar, seçili gün, odak halkası */
+  --ink-2: #4E5F58;          /* ikincil metin */
+  --line: #DCE5DF;           /* kenarlıklar, ayırıcılar */
+  --lemon: #FFD43B;          /* Limon: seçili saat, fişteki saat, "sıradaki boş saat" hapı */
+  --lemon-tint: #FFF6CC;     /* müsait saat hapları */
+  --green: #157A45;          /* Şişe yeşili: birincil buton, aktif sekme göstergesi */
+  --green-hover: #0F6437;
+  --green-ink: #11663A;      /* yeşil zemin üstündeki metin */
+  --green-tint: #DDF3E6;     /* "Açık", "Tamamlandı", bilgi kutuları */
+  --red: #B3261E;            /* Nar: hata, "Gelmedi", tehlikeli işlem */
+  --red-tint: #FDE3E1;
+  --amber-ink: #8A4B00;      /* "İşaretlenmeyi bekliyor", uyarılar */
+  --amber-tint: #FEF0DC;
+  --neutral-tint: #EEF1EF;   /* "Kapalı", "İptal edildi", pasif öğeler */
 
-  /* "İşaretlenmeyi bekliyor" rozeti: --lemon %35 opaklık */
-  --lemon-35: rgb(255 197 61 / 0.35);
+  /* Tipografi (§6) */
+  --font-display: "Unbounded", "Figtree", system-ui, sans-serif;
+  --font-body: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
-  /* İmza öğe: berber direği şeridi (§9.5) */
-  --pole-stripe: repeating-linear-gradient(
-    135deg,
-    var(--pole-red) 0 10px, #fff 10px 20px,
-    var(--cobalt) 20px 30px, #fff 30px 40px
-  );
+  /* Boşluk ölçeği (§7) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
 
-  /* Tipografi (§9.3) */
-  --font-sans: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --fs-14: 0.875rem;
-  --fs-16: 1rem;
-  --fs-18: 1.125rem;
-  --fs-22: 1.375rem;
-  --fs-28: 1.75rem;
-  --fs-36: 2.25rem;
-  --fs-48: 3rem;
+  /* Köşe hiyerarşisi: her şeye aynı yarıçap verilmez */
+  --r-sm: 6px;               /* rozetler */
+  --r-md: 10px;              /* buton, input, gün çipi */
+  --r-lg: 16px;              /* kart, panel, fiş, harita */
+  --r-pill: 999px;           /* saat hapları, filtre çipleri */
 
-  /* Köşe yarıçapı hiyerarşisi (§9.4) */
-  --radius-chip: 4px;         /* rozet ve çipler */
-  --radius-control: 8px;      /* buton ve inputlar */
-  --radius-panel: 14px;       /* paneller */
+  /* Yerleşim ve sabit çubuklar */
+  --container: 1080px;
+  --tap: 44px;               /* en az dokunma alanı */
+  --header-h: 56px;
+  --tabbar-h: 64px;
+  --bar-shadow: 0 -2px 12px rgba(23, 51, 42, 0.08);
 
-  /* Yerleşim (§9.4) */
-  --container: 1120px;
-  --gutter: 16px;
-  --tap: 44px;                /* en az dokunma alanı */
-
-  /* Hareket (§9.6): yalnızca işlevsel geçişler */
+  /* Hareket (§11): yalnızca işlevsel geçişler */
   --t-fast: 150ms;
 }

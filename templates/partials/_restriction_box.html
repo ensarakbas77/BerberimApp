@@ -1,11 +1,13 @@
-{% comment %}Kullanım: {% include "partials/_restriction_box.html" with restriction=restriction %}
+{% load static %}{% comment %}Kullanım: {% include "partials/_restriction_box.html" with restriction=restriction %}
 Gelmedi uyarısı ya da kısıtı (PROJECT.md §7.7, §9.7). Kısıt yoksa hiçbir şey çizmez.{% endcomment %}
 {% if restriction.level == "blocked" %}
 <div class="alert alert--error form-alert" role="alert">
+  <svg class="icon alert__icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#hata"></use></svg>
   <p class="alert__text">{{ restriction.message }}</p>
 </div>
 {% elif restriction.level == "warning" %}
 <div class="alert alert--warning form-alert" role="status">
+  <svg class="icon alert__icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#uyari"></use></svg>
   <p class="alert__text">{{ restriction.message }}</p>
 </div>
 {% endif %}

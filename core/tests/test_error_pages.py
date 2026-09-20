@@ -38,7 +38,7 @@ class CsrfFailurePageTests(TestCase):
         client = Client(enforce_csrf_checks=True)
         self.assertTrue(client.login(email="sahip@example.com", password=PASSWORD))
         response = client.post("/hesap/cikis/")
-        self.assertContains(response, 'href="/panel/"', status_code=403)
+        self.assertContains(response, 'href="/panel/dukkan/"', status_code=403)  # dükkanı olmayan sahip: kurulum
 
 
 class PermissionDeniedPageTests(TestCase):
